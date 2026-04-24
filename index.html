@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KNIGHT GÖZCÜ - Canlı Kontrol Merkezi</title>
+    <!-- Tailwind CSS (Modern Tasarım İçin) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome (İkonlar) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .bot-card { transition: all 0.3s ease; }
+        .bot-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); }
+        .pulse-green { animation: pulseGreen 2s infinite; }
+        .pulse-red { animation: pulseRed 2s infinite; }
+        
+        @keyframes pulseGreen {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+        @keyframes pulseRed {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        /* Scrollbar Gizleme/Güzelleştirme */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* AI Gradient Text */
+        .ai-text-gradient {
+            background: linear-gradient(to right, #a855f7, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* AI Content Formatting */
+        .ai-content b { color: #93c5fd; }
+        .ai-content ul { list-style-type: disc; padding-left: 1.5rem; margin-top: 0.5rem; margin-bottom: 0.5rem; }
+        .ai-content li { margin-bottom: 0.25rem; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- 1. GİRİŞ EKRANI -->
+    <div id="loginScreen" class="flex-grow flex items-center justify-center p-4 z-10">
+        <div class="glass-panel p-8 rounded-2xl shadow-2xl max-w-md w-full text-center border border-slate-700">
+            <div class="mb-6 inline-block p-4 rounded-full bg-blue-900/50 text-blue-400 shadow-inner">
+                <i class="fa-solid fa-satellite-dish text-5xl"></i>
+            </div>
+            <h1 class="text-3xl font-bold mb-2 text-white">GÖZCÜ PANEL</h1>
+            <p class="text-slate-400 mb-8 text-sm">Ağa bağlanmak için bilgilerinizi giriniz.</p>
+            
+            <div class="mb-4 relative">
+                <i class="fa-solid fa-user absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                <input type="text" id="musteriIdInput" placeholder="Lisans / Müşteri ID" 
+                       class="w-full pl-10 pr-4 py-3 rounded-lg bg-slate-800 border border-slate-600 focus:border-blue-500 focus:outline-none text-white font-semibold mb-2 uppercase tracking-widest">
+            </div>
+
+            <div class="mb-6 relative">
+                <i class="fa-solid fa-lock absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                <input type="password" id="passwordInput" placeholder="Şifreniz" 
+                       class="w-full pl-10 pr-4 py-3 rounded-lg bg-slate-800 border border-slate-600 focus:border-blue-500 focus:outline-none text-white font-semibold tracking-widest"
+                       onkeypress="if(event.key === 'Enter') connectToPanel()">
+            </div>
+            
+            <button onclick="connectToPanel()" id="loginBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-lg transition-colors shadow-lg shadow-blue-900/50 flex items-center justify-center">
+                <span>SİSTEME GİRİŞ YAP</span> <i class="fa-solid fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- 2. ANA DASHBOARD EKRANI (Başlangıçta Gizli) -->
+    <div id="dashboardScreen" class="hidden flex-col min-h-screen p-4 md:p-8 relative z-10">
+        
+        <!-- Üst Header & İstatistikler -->
+        <header class="glass-panel rounded-xl p-4 md:p-6 mb-6 flex flex-col lg:flex-row justify-between items-center gap-4 border-b-4 border-blue-500">
+            <div>
+                <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+                    <i class="fa-solid fa-shield-halved text-blue-400"></i> KNIGHT GÖZCÜ FİLO KOMUTASI
+                </h1>
+                <p class="text-slate-400 text-sm mt-1 flex items-center">
+                    Aktif Hesap: <span id="displayMusteriId" class="font-bold text-blue-300 ml-1">...</span>
+                    <span id="adminBadge" class="hidden ml-2 px-2 py-0.5 bg-red-500/20 text-red-400 border border-red-500/50 rounded text-xs font-bold uppercase">Kurucu Admin</span>
+                </p>
+            </div>
+            
+            <div class="flex flex-wrap gap-2 md:gap-4 justify-center items-center">
+                <!-- Stat Kutuları -->
+                <div class="bg-slate-800 px-4 py-2 rounded-lg border border-slate-700 text-center">
+                    <div class="text-xs text-slate-400 uppercase tracking-wider" title="Ekranda Görünen / Toplam VDS">Görünen / Toplam</div>
+                    <div id="statTotal" class="text-2xl font-bold text-white">0</div>
+                </div>
+                <div class="bg-green-900/30 px-4 py-2 rounded-lg border border-green-800/50 text-center pulse-green">
+                    <div class="text-xs text-green-400 uppercase tracking-wider">Aktif/Oyunda</div>
+                    <div id="statOnline" class="text-2xl font-bold text-green-400">0</div>
+                </div>
+                <div class="bg-red-900/30 px-4 py-2 rounded-lg border border-red-800/50 text-center pulse-red">
+                    <div class="text-xs text-red-400 uppercase tracking-wider">Hata/Kritik</div>
+                    <div id="statError" class="text-2xl font-bold text-red-400">0</div>
+                </div>
+                
+                <!-- Admin Dinamik Kullanıcı Filtresi -->
+                <select id="adminViewFilter" onchange="fetchBotData()" class="hidden bg-purple-900/30 hover:bg-purple-800/40 border border-purple-500 text-purple-300 rounded-lg px-3 py-2 outline-none focus:border-purple-400 cursor-pointer font-bold text-sm shadow-lg shadow-purple-900/20 transition-colors h-[50px]">
+                    <option value="ALL">🌐 Tümü</option>
+                </select>
+
+                <!-- Admin Butonu -->
+                <button id="adminPanelBtn" onclick="openAdminModal()" class="hidden bg-purple-600 hover:bg-purple-500 px-4 py-2 rounded-lg transition-colors text-sm flex flex-col items-center justify-center font-bold text-white shadow-lg shadow-purple-900/50 h-[50px]">
+                    <i class="fa-solid fa-users-gear mb-1"></i> Admin
+                </button>
+
+                <button onclick="logout()" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg transition-colors text-sm flex flex-col items-center justify-center h-[50px]">
+                    <i class="fa-solid fa-power-off text-red-400 mb-1"></i> Çıkış
+                </button>
+            </div>
+        </header>
+
+        <!-- Arama, Filtreleme ve Toplu İşlem Menüsü -->
+        <div class="mb-6 flex flex-wrap gap-4 items-center justify-between bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+            <div class="flex flex-wrap gap-4 items-center flex-grow">
+                <div class="relative w-full max-w-sm">
+                    <i class="fa-solid fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="searchInput" placeholder="Ara (Örn: bos1, Zero-6, DIYON)" 
+                           class="w-full pl-10 pr-4 py-3 rounded-lg bg-slate-800 border border-slate-600 focus:border-blue-500 text-white outline-none shadow-inner"
+                           onkeyup="renderBots()">
+                </div>
+
+                <select id="statusFilter" class="bg-slate-800 border border-slate-600 text-white rounded-lg px-4 py-3 outline-none focus:border-blue-500 shadow-inner cursor-pointer font-medium" onchange="renderBots()">
+                    <option value="ALL">📋 Tüm Durumlar</option>
+                    <option value="ONLINE">🟢 Sadece Oyunda Olanlar</option>
+                    <option value="WAITING">🟡 Sadece Beklemede/Başlatıcıda</option>
+                    <option value="JAIL">🟣 Hapiste / Karalistede</option>
+                    <option value="ERROR">🔴 Hata Verenler (OTP/NPC)</option>
+                    <option value="OFFLINE">⚫ Bağlantısı Kopanlar</option>
+                </select>
+
+                <!-- [YENİ] Ana Sunucu ve Kanal Filtreleri (Ayrı Ayrı) -->
+                <select id="baseServerFilter" class="bg-slate-800 border border-slate-600 text-white rounded-lg px-4 py-3 outline-none focus:border-blue-500 shadow-inner cursor-pointer font-medium" onchange="renderBots()">
+                    <option value="ALL">🌍 Tüm Sunucular</option>
+                </select>
+                
+                <select id="channelFilter" class="bg-slate-800 border border-slate-600 text-white rounded-lg px-4 py-3 outline-none focus:border-blue-500 shadow-inner cursor-pointer font-medium" onchange="renderBots()">
+                    <option value="ALL">🔢 Tüm Kanallar</option>
+                </select>
+                
+                <div class="flex gap-2">
+                    <button onclick="openMassCommandModal()" class="bg-red-600 hover:bg-red-500 text-white px-5 py-3 rounded-lg font-bold shadow-lg shadow-red-900/50 transition-colors flex items-center whitespace-nowrap">
+                        <i class="fa-solid fa-layer-group mr-2 text-xl"></i> Toplu Komut
+                    </button>
+
+                    <!-- GEMINI AI ANALİZ BUTONU -->
+                    <button onclick="openAiAnalysisModal()" class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white px-5 py-3 rounded-lg font-bold shadow-lg shadow-purple-900/50 transition-colors flex items-center whitespace-nowrap">
+                        ✨ Akıllı Analiz
+                    </button>
+                </div>
+            </div>
+            
+            <div class="text-sm text-slate-400 flex items-center font-semibold bg-slate-800 px-4 py-2 rounded-lg border border-slate-700">
+                <i class="fa-solid fa-rotate animate-spin mr-2" id="refreshIcon"></i> Senkronizasyon: <span id="lastRefreshTime" class="text-green-400 ml-2 font-mono">Şimdi</span>
+            </div>
+        </div>
+
+        <!-- Botların Dizileceği Izgara -->
+        <div id="botsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4"></div>
+    </div>
+
+    <!-- 3. UZAKTAN KOMUT MODALI -->
+    <div id="commandModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="glass-panel p-6 rounded-2xl max-w-md w-full border border-slate-600 shadow-2xl relative overflow-hidden">
+            <div id="modalHeaderBg" class="absolute top-0 left-0 w-full h-1 bg-blue-500"></div>
+
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-white flex items-center">
+                    <i class="fa-solid fa-terminal text-blue-400 mr-2"></i> Uzaktan Komut
+                </h2>
+                <button onclick="closeCommandModal()" class="text-slate-400 hover:text-red-400 transition-colors">
+                    <i class="fa-solid fa-xmark text-2xl"></i>
+                </button>
+            </div>
+            
+            <div class="bg-slate-800/50 rounded-lg p-3 mb-5 border border-slate-700">
+                <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">Hedef Makine(ler)</p>
+                <p id="modalTargetName" class="font-bold text-white text-lg truncate"></p>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-slate-300 text-sm font-bold mb-2">Uygulanacak İşlem</label>
+                <select id="commandType" class="w-full bg-slate-800 text-white rounded-lg p-3 border border-slate-600 focus:border-blue-500 outline-none cursor-pointer font-medium" onchange="toggleCommandInputs()">
+                    <option value="START_GAME">🟢 Oyunu Zorla Başlat</option>
+                    <option value="KILL_GAME">🔴 Oyunu Acil Kapat</option>
+                    <option value="RESTART_BOT">🔄 Gözcü'yü Kapatıp Aç (Güncelle)</option>
+                    <option value="SET_STARTUP">⏳ Sıra Bekleme Süresi</option>
+                    <option value="SET_JAIL">⏱️ Hapis Bekleme Süresi</option>
+                    <option value="SET_KARALISTE">💀 Karaliste Bekleme Süresi</option>
+                    <option value="SET_RESTRICT">⏰ Yasaklı Saat Dilimi</option>
+                </select>
+            </div>
+
+            <div id="paramContainer" class="hidden mb-6">
+                <label id="paramLabel" class="block text-slate-300 text-sm font-bold mb-2">Değer</label>
+                <input type="text" id="commandParam" class="w-full bg-slate-800 text-white rounded-lg p-3 border border-slate-600 focus:border-blue-500 outline-none font-mono">
+                <p id="paramHelpText" class="text-xs text-slate-400 mt-2"></p>
+            </div>
+
+            <div class="flex gap-3 mt-6">
+                <button onclick="closeCommandModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-4 rounded-lg transition-colors">İptal</button>
+                <button onclick="sendRemoteCommand()" id="sendCmdBtn" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-lg transition-colors flex justify-center items-center">
+                    GÖNDER <i class="fa-solid fa-paper-plane ml-2"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. ADMİN MÜŞTERİ YÖNETİM MODALI -->
+    <div id="adminModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="glass-panel p-6 rounded-2xl max-w-2xl w-full border border-purple-500 shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="absolute top-0 left-0 w-full h-1 bg-purple-500"></div>
+
+            <div class="flex justify-between items-center mb-6 shrink-0">
+                <h2 class="text-2xl font-bold text-white flex items-center">
+                    <i class="fa-solid fa-users-gear text-purple-400 mr-3"></i> Müşteri & Lisans Yönetimi
+                </h2>
+                <button onclick="closeAdminModal()" class="text-slate-400 hover:text-red-400 transition-colors">
+                    <i class="fa-solid fa-xmark text-2xl"></i>
+                </button>
+            </div>
+            
+            <div class="bg-slate-800 rounded-xl p-4 mb-6 border border-slate-600 shrink-0">
+                <h3 class="text-white font-bold mb-3 text-sm uppercase tracking-wider text-slate-300">Yeni Lisans Oluştur</h3>
+                <div class="flex flex-wrap gap-3">
+                    <input type="text" id="newUserId" placeholder="Müşteri ID (Örn: AHMET)" class="flex-1 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white outline-none focus:border-purple-500 uppercase">
+                    <input type="text" id="newUserPass" placeholder="Şifre" class="flex-1 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white outline-none focus:border-purple-500">
+                    <select id="newUserRole" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white outline-none">
+                        <option value="user">Normal Kullanıcı</option>
+                        <option value="admin">Admin Yetkili</option>
+                    </select>
+                    <button onclick="createUser()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-4 rounded transition-colors">
+                        Oluştur <i class="fa-solid fa-plus ml-1"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex-grow overflow-y-auto pr-2 rounded border border-slate-700 bg-slate-900/50">
+                <table class="w-full text-left text-sm text-slate-300">
+                    <thead class="text-xs uppercase bg-slate-800 text-slate-400 sticky top-0">
+                        <tr>
+                            <th class="px-4 py-3">Müşteri ID</th>
+                            <th class="px-4 py-3">Şifre</th>
+                            <th class="px-4 py-3">Yetki</th>
+                            <th class="px-4 py-3 text-right">İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <!-- Kullanıcılar JS ile buraya yüklenecek -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. GEMINI AI ANALİZ MODALI -->
+    <div id="aiAnalysisModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="glass-panel p-6 rounded-2xl max-w-3xl w-full border border-purple-500 shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-blue-500"></div>
+
+            <div class="flex justify-between items-center mb-4 shrink-0">
+                <h2 class="text-2xl font-bold flex items-center ai-text-gradient">
+                    ✨ Gemini Filo Asistanı
+                </h2>
+                <button onclick="closeAiAnalysisModal()" class="text-slate-400 hover:text-red-400 transition-colors">
+                    <i class="fa-solid fa-xmark text-2xl"></i>
+                </button>
+            </div>
+            
+            <p class="text-slate-400 text-sm mb-4 shrink-0 border-b border-slate-700 pb-4">
+                Google Gemini yapay zekası, ekrandaki mevcut filtrelenmiş bot verilerini okuyarak stratejik bir sistem analizi sunar.
+            </p>
+
+            <div id="aiContentArea" class="flex-grow overflow-y-auto pr-2 text-slate-300 ai-content text-sm leading-relaxed p-4 bg-slate-900/50 rounded-lg border border-slate-700/50">
+                <!-- AI Cevabı veya Yükleniyor Göstergesi Buraya Gelecek -->
+            </div>
+
+            <div class="mt-4 flex justify-end shrink-0 pt-4 border-t border-slate-700">
+                <button onclick="closeAiAnalysisModal()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-6 rounded-lg transition-colors">
+                    Kapat
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT KODLARI -->
+    <script>
+        // --- AYARLAR ---
+        const FIREBASE_URL = "https://gozcu-panel-default-rtdb.europe-west1.firebasedatabase.app/";
+        const apiKey = ""; // Gemini API Entegrasyonu (Key çalışma zamanında sağlanacak)
+        
+        let currentMusteriID = "";
+        let currentUserRole = "user"; 
+        let refreshInterval = null;
+        let allBotsData = {}; 
+        
+        let selectedBotKey = ""; 
+        let selectedBotOwner = ""; 
+        let filteredBotsList = []; // Analiz ve Toplu işlem için kullanılan liste
+        let lastKnownServers = ""; // Dinamik Sunucu Filtresi kontrolü için
+
+        const colorMap = { "green": "#22c55e", "red": "#ef4444", "yellow": "#eab308", "orange": "#f97316", "purple": "#a855f7", "blue": "#3b82f6", "black": "#334155", "gray": "#6b7280" };
+        const iconMap = { "ONLINE": "fa-play", "QUEUE": "fa-hourglass-half", "LAUNCHER": "fa-rocket", "OTP_ERROR": "fa-lock", "NPC_ERROR": "fa-triangle-exclamation", "JAIL": "fa-gavel", "BLACKLIST": "fa-skull-crossbones", "TIME_ERROR": "fa-clock", "RESTRICTED_WAIT": "fa-ban", "RESTRICTED_OPEN": "fa-eye-slash", "OFFLINE": "fa-plug-circle-xmark", "DELAY": "fa-stopwatch", "VIP_PASS": "fa-ticket" };
+
+        // --- 1. GİRİŞ VE KULLANICI DOĞRULAMA ---
+        async function connectToPanel() {
+            const idInput = document.getElementById('musteriIdInput').value.trim().toUpperCase();
+            const passInput = document.getElementById('passwordInput').value.trim();
+            const btn = document.getElementById('loginBtn');
+
+            if(!idInput || !passInput) { alert("Müşteri ID ve Şifre boş bırakılamaz!"); return; }
+            
+            const safeId = idInput.replace(/[^a-zA-Z0-9_-]/g, "");
+
+            try {
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> BAĞLANILIYOR...';
+                btn.disabled = true;
+
+                const usersRes = await fetch(`${FIREBASE_URL}Users.json`);
+                const usersData = await usersRes.json();
+
+                if (!usersData) {
+                    const confirmSetup = confirm("Veritabanında hiç kullanıcı bulunamadı!\n\nGirdiğiniz bu ID ve Şifre ile sistemin KURUCU ADMİN hesabı oluşturulsun mu?");
+                    if (confirmSetup) {
+                        await fetch(`${FIREBASE_URL}Users/${safeId}.json`, {
+                            method: 'PUT',
+                            body: JSON.stringify({ password: passInput, role: "admin" })
+                        });
+                        alert("✅ Kurucu Admin hesabı başarıyla oluşturuldu!\n\nArtık panele giriş yapabilirsiniz.");
+                        currentMusteriID = safeId;
+                        currentUserRole = "admin";
+                        loadDashboard();
+                    }
+                    return;
+                }
+
+                if (usersData[safeId] && usersData[safeId].password === passInput) {
+                    currentMusteriID = safeId;
+                    currentUserRole = usersData[safeId].role || "user";
+                    loadDashboard();
+                } else {
+                    alert("❌ Hatalı Müşteri ID veya Şifre!");
+                }
+            } catch (error) {
+                alert("Bağlantı hatası: " + error);
+            } finally {
+                btn.innerHTML = '<span>SİSTEME GİRİŞ YAP</span> <i class="fa-solid fa-arrow-right ml-2"></i>';
+                btn.disabled = false;
+            }
+        }
+
+        async function updateAdminUserDropdown() {
+            if (currentUserRole !== "admin") return;
+            try {
+                const res = await fetch(`${FIREBASE_URL}Users.json`);
+                const usersData = await res.json() || {};
+                
+                const filterSelect = document.getElementById('adminViewFilter');
+                const currentSelection = filterSelect.value || "ALL";
+                
+                filterSelect.innerHTML = '<option value="ALL">🌐 Tümü</option>';
+                
+                for (const userId of Object.keys(usersData)) {
+                    filterSelect.innerHTML += `<option value="${userId}">👤 ${userId}</option>`;
+                }
+                
+                if(Array.from(filterSelect.options).some(o => o.value === currentSelection)) {
+                    filterSelect.value = currentSelection;
+                } else {
+                    filterSelect.value = "ALL";
+                }
+            } catch (e) {
+                console.error("Kullanıcı listesi admin dropdown'una çekilemedi", e);
+            }
+        }
+
+        function loadDashboard() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('dashboardScreen').classList.remove('hidden');
+            document.getElementById('dashboardScreen').classList.add('flex');
+            document.getElementById('displayMusteriId').innerText = currentMusteriID;
+
+            if (currentUserRole === "admin") {
+                document.getElementById('adminBadge').classList.remove('hidden');
+                document.getElementById('adminPanelBtn').classList.remove('hidden');
+                document.getElementById('adminViewFilter').classList.remove('hidden'); 
+                updateAdminUserDropdown(); 
+            } else {
+                document.getElementById('adminBadge').classList.add('hidden');
+                document.getElementById('adminPanelBtn').classList.add('hidden');
+                document.getElementById('adminViewFilter').classList.add('hidden');
+            }
+
+            fetchBotData();
+            refreshInterval = setInterval(fetchBotData, 5000);
+        }
+
+        function logout() {
+            clearInterval(refreshInterval);
+            document.getElementById('dashboardScreen').classList.add('hidden');
+            document.getElementById('dashboardScreen').classList.remove('flex');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('passwordInput').value = "";
+            document.getElementById('adminViewFilter').value = "ALL"; 
+            document.getElementById('baseServerFilter').value = "ALL"; 
+            document.getElementById('channelFilter').value = "ALL"; 
+            currentMusteriID = "";
+            currentUserRole = "user";
+        }
+
+        // --- 2. BOT VERİLERİNİ ÇEKME ---
+        async function fetchBotData() {
+            try {
+                document.getElementById('refreshIcon').classList.add('animate-spin');
+                
+                allBotsData = {}; 
+                
+                const adminViewFilter = document.getElementById('adminViewFilter');
+                let targetId = currentMusteriID;
+                let fetchAll = false;
+
+                if (currentUserRole === "admin" && adminViewFilter) {
+                    if (adminViewFilter.value === "ALL") fetchAll = true;
+                    else targetId = adminViewFilter.value;
+                }
+
+                if (fetchAll) {
+                    const res = await fetch(`${FIREBASE_URL}Bots.json`);
+                    const rawData = await res.json() || {};
+                    
+                    for (const [ownerId, botsObj] of Object.entries(rawData)) {
+                        for (const [botId, botData] of Object.entries(botsObj)) {
+                            if (botData && typeof botData === 'object' && botData.Account) {
+                                allBotsData[`${ownerId}___${botId}`] = { ...botData, _owner: ownerId, _key: botId };
+                            }
+                        }
+                    }
+                } else {
+                    const res = await fetch(`${FIREBASE_URL}Bots/${targetId}.json`);
+                    const rawData = await res.json() || {};
+                    
+                    for (const [botId, botData] of Object.entries(rawData)) {
+                        if (botData && typeof botData === 'object' && botData.Account) {
+                            allBotsData[botId] = { ...botData, _owner: targetId, _key: botId };
+                        }
+                    }
+                }
+
+                updateServerDropdown(); // Veriler geldikten sonra sunucu açılır menüsünü güncelle
+                renderBots();
+                document.getElementById('lastRefreshTime').innerText = new Date().toLocaleTimeString('tr-TR');
+                setTimeout(() => document.getElementById('refreshIcon').classList.remove('animate-spin'), 500);
+            } catch (error) {
+                console.error("Veri çekme hatası:", error);
+            }
+        }
+
+        // --- [YENİ] DİNAMİK SUNUCU FİLTRESİ LİSTESİ OLUŞTURUCU ---
+        function updateServerDropdown() {
+            const baseFilter = document.getElementById('baseServerFilter');
+            const channelFilter = document.getElementById('channelFilter');
+            if (!baseFilter || !channelFilter) return;
+
+            const currentBase = baseFilter.value;
+            const currentChannel = channelFilter.value;
+
+            const baseServers = new Set();
+            const channels = new Set();
+
+            // Aktif tüm botları tarayıp sunucuları ve kanalları ayırarak listeye alırız
+            Object.values(allBotsData).forEach(bot => {
+                if (bot.Server && bot.Server.trim() !== "") {
+                    const parts = bot.Server.split('-');
+                    if (parts.length > 0 && parts[0]) baseServers.add(parts[0]);
+                    if (parts.length > 1 && parts[1]) channels.add(parts[1]);
+                }
+            });
+
+            const sortedBases = Array.from(baseServers).sort();
+            // Kanalları sayısal olarak sıralıyoruz (1, 2, 3...)
+            const sortedChannels = Array.from(channels).sort((a, b) => parseInt(a) - parseInt(b));
+            
+            const signature = sortedBases.join(',') + '|' + sortedChannels.join(',');
+            if (signature === lastKnownServers && baseFilter.options.length > 1) {
+                return;
+            }
+            lastKnownServers = signature;
+
+            // Ana Sunucu HTML Şablonunu Oluştur
+            let baseHtml = '<option value="ALL">🌍 Tüm Sunucular</option>';
+            sortedBases.forEach(base => {
+                baseHtml += `<option value="${base}">📍 ${base}</option>`;
+            });
+            baseFilter.innerHTML = baseHtml;
+
+            // Kanal HTML Şablonunu Oluştur
+            let channelHtml = '<option value="ALL">🔢 Tüm Kanallar</option>';
+            sortedChannels.forEach(ch => {
+                channelHtml += `<option value="${ch}">Kanal ${ch}</option>`;
+            });
+            channelFilter.innerHTML = channelHtml;
+
+            // Önceki kullanıcının seçimi hala güncel listede varsa onu geri seç
+            if (Array.from(baseFilter.options).some(o => o.value === currentBase)) baseFilter.value = currentBase;
+            else baseFilter.value = "ALL";
+
+            if (Array.from(channelFilter.options).some(o => o.value === currentChannel)) channelFilter.value = currentChannel;
+            else channelFilter.value = "ALL";
+        }
+
+        function parseCustomDate(dateStr) {
+            try {
+                const parts = dateStr.split(' ');
+                const dateParts = parts[0].split('.');
+                const timeParts = parts[1].split(':');
+                return new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1], timeParts[2]);
+            } catch(e) { return new Date(0); }
+        }
+
+        // --- 3. KOMUT GÖNDERME İŞLEMLERİ ---
+        function openCommandModal(botOwner, botKey, accountName, serverName) {
+            selectedBotOwner = botOwner;
+            selectedBotKey = botKey;
+            document.getElementById('modalTargetName').innerText = `${accountName} (${serverName})`;
+            document.getElementById('modalHeaderBg').className = "absolute top-0 left-0 w-full h-1 bg-blue-500";
+            document.getElementById('commandModal').classList.remove('hidden');
+            toggleCommandInputs();
+        }
+
+        function openMassCommandModal() {
+            if (filteredBotsList.length === 0) {
+                alert("Ekranda komut gönderilecek hiçbir bot bulunmuyor!");
+                return;
+            }
+            selectedBotKey = "MASS_ACTION";
+            document.getElementById('modalTargetName').innerText = `🔥 EKRANDAKİ ${filteredBotsList.length} BOTA AYNI ANDA İŞLEM YAPILACAK!`;
+            document.getElementById('modalHeaderBg').className = "absolute top-0 left-0 w-full h-1 bg-red-500";
+            document.getElementById('commandModal').classList.remove('hidden');
+            toggleCommandInputs();
+        }
+
+        function closeCommandModal() {
+            document.getElementById('commandModal').classList.add('hidden');
+            selectedBotKey = "";
+            selectedBotOwner = "";
+            document.getElementById('commandParam').value = ""; 
+        }
+
+        function toggleCommandInputs() {
+            const type = document.getElementById('commandType').value;
+            const container = document.getElementById('paramContainer');
+            const label = document.getElementById('paramLabel');
+            const input = document.getElementById('commandParam');
+            const help = document.getElementById('paramHelpText');
+
+            if (type === 'SET_JAIL') {
+                container.classList.remove('hidden');
+                label.innerText = 'Yeni Hapis Bekleme Süresi (Dakika)';
+                input.placeholder = 'Örn: 60 veya 120';
+                input.type = 'number';
+                help.innerText = 'Gözcü, ayarlanan süre dolana kadar oyunu açmayacaktır.';
+            } else if (type === 'SET_STARTUP') {
+                container.classList.remove('hidden');
+                label.innerText = 'Yeni Sıra Bekleme Süresi (Dakika)';
+                input.placeholder = 'Örn: 20 veya 45';
+                input.type = 'number';
+                help.innerText = 'Oyun başlatıldıktan sonra log güncellenene kadar en fazla bu kadar bekler.';
+            } else if (type === 'SET_KARALISTE') {
+                container.classList.remove('hidden');
+                label.innerText = 'Yeni Karaliste Bekleme Süresi (Dakika)';
+                input.placeholder = 'Örn: 15 veya 30';
+                input.type = 'number';
+                help.innerText = 'Karalisteye düşünce oyunun yeniden açılması için beklenecek süre.';
+            } else if (type === 'SET_RESTRICT') {
+                container.classList.remove('hidden');
+                label.innerText = 'Yeni Yasaklı Saat Dilimi';
+                input.placeholder = 'Örn: 10:00-19:00';
+                input.type = 'text';
+                help.innerText = 'Yasağı tamamen kaldırmak için YASAKLI_YOK yazabilirsiniz.';
+            } else {
+                container.classList.add('hidden');
+                input.value = ''; 
+            }
+        }
+
+        async function sendRemoteCommand() {
+            if (!selectedBotKey) return;
+
+            const type = document.getElementById('commandType').value;
+            const param = document.getElementById('commandParam').value.trim();
+            const btn = document.getElementById('sendCmdBtn');
+
+            if ((type === 'SET_JAIL' || type === 'SET_STARTUP' || type === 'SET_KARALISTE' || type === 'SET_RESTRICT') && !param) {
+                alert("Lütfen bir değer giriniz!");
+                return;
+            }
+
+            const commandData = {
+                action: type,
+                param: param,
+                timestamp: new Date().getTime(),
+                status: "PENDING"
+            };
+
+            try {
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Gönderiliyor...';
+                btn.disabled = true;
+
+                if (selectedBotKey === "MASS_ACTION") {
+                    const updates = {};
+                    filteredBotsList.forEach(bot => {
+                        updates[`${bot.owner}/${bot.key}/Command`] = commandData;
+                    });
+                    
+                    const response = await fetch(`${FIREBASE_URL}Bots.json`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(updates)
+                    });
+                    
+                    if (response.ok) {
+                        alert(`✅ Komut KAYIPSIZ şekilde ekranda bulunan ${filteredBotsList.length} bota aynı anda iletildi!`);
+                    } else {
+                        throw new Error("Toplu komut sunucu tarafından reddedildi.");
+                    }
+                } 
+                else {
+                    const url = `${FIREBASE_URL}Bots/${selectedBotOwner}/${selectedBotKey}/Command.json`;
+                    const response = await fetch(url, {
+                        method: 'PUT', 
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(commandData)
+                    });
+                    
+                    if(response.ok) alert("✅ Komut başarıyla tekil makineye iletildi!");
+                    else throw new Error("Ağ hatası veya sunucu reddetti.");
+                }
+
+                closeCommandModal();
+
+            } catch (error) {
+                alert("❌ Hata: " + error.message);
+            } finally {
+                btn.innerHTML = 'GÖNDER <i class="fa-solid fa-paper-plane ml-2"></i>';
+                btn.disabled = false;
+            }
+        }
+
+        // --- 4. EKRANA ÇİZME VE FİLTRELEME ---
+        function renderBots() {
+            const grid = document.getElementById('botsGrid');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filterValue = document.getElementById('statusFilter').value; 
+            const baseServerValue = document.getElementById('baseServerFilter').value; 
+            const channelValue = document.getElementById('channelFilter').value; 
+            
+            grid.innerHTML = ""; 
+            
+            let filteredCount = 0; 
+            let online = 0;        
+            let errors = 0;        
+            
+            filteredBotsList = [];
+
+            const botList = Object.values(allBotsData);
+            const overallTotal = botList.length; 
+            
+            botList.sort((a, b) => {
+                if(currentUserRole === "admin" && a._owner !== b._owner) {
+                    return a._owner.localeCompare(b._owner);
+                }
+                return a.Account.localeCompare(b.Account, undefined, {numeric: true, sensitivity: 'base'});
+            });
+
+            botList.forEach(bot => {
+                const lastUpd = parseCustomDate(bot.LastUpdate);
+                const diffMinutes = (new Date() - lastUpd) / 1000 / 60;
+                
+                let isDead = false;
+                let displayColor = colorMap[bot.ColorCode] || colorMap["gray"];
+                let displayStatus = bot.StatusMsg;
+                let statusCode = bot.StatusCode;
+
+                if (diffMinutes > 4) {
+                    isDead = true;
+                    displayColor = colorMap["gray"];
+                    displayStatus = "BAĞLANTI KOPTU (Bot Kapalı)";
+                    statusCode = "OFFLINE";
+                } else {
+                    if (bot.ColorCode === "green") online++;
+                    if (["red", "purple", "black"].includes(bot.ColorCode)) errors++;
+                }
+
+                if (searchTerm) {
+                    const searchStr = `${bot.Account} ${bot.Server} ${bot._owner}`.toLowerCase();
+                    if (!searchStr.includes(searchTerm)) return; 
+                }
+
+                let botCategory = "WAITING"; 
+                if (statusCode === "ONLINE") botCategory = "ONLINE";
+                else if (statusCode === "OFFLINE") botCategory = "OFFLINE";
+                else if (statusCode === "JAIL" || statusCode === "BLACKLIST") botCategory = "JAIL";
+                else if (["OTP_ERROR", "NPC_ERROR", "TIME_ERROR"].includes(statusCode)) botCategory = "ERROR";
+
+                // Durum filtresi kontrolü
+                if (filterValue !== "ALL" && botCategory !== filterValue) return;
+
+                // [YENİ] Ana Sunucu ve Kanal filtresi kontrolü
+                let botBaseServer = "";
+                let botChannel = "";
+                if (bot.Server) {
+                    const parts = bot.Server.split('-');
+                    botBaseServer = parts[0] || "";
+                    botChannel = parts[1] || "";
+                }
+
+                if (baseServerValue !== "ALL" && botBaseServer !== baseServerValue) return;
+                if (channelValue !== "ALL" && botChannel !== channelValue) return;
+
+                // Analiz ve Toplu Komut için listeye ekliyoruz
+                filteredBotsList.push({ 
+                    owner: bot._owner, 
+                    key: bot._key, 
+                    account: bot.Account, 
+                    server: bot.Server, 
+                    status: statusCode 
+                });
+                
+                filteredCount++;
+                
+                const icon = iconMap[statusCode] || "fa-desktop";
+
+                const ownerTag = currentUserRole === "admin" 
+                    ? `<div class="absolute top-0 left-0 bg-purple-600 text-white text-[10px] font-bold px-2 py-1 rounded-br-lg z-10 shadow">👤 ${bot._owner}</div>` 
+                    : "";
+
+                const card = document.createElement('div');
+                card.className = "bot-card bg-slate-800 rounded-xl overflow-hidden relative border border-slate-700 flex flex-col pt-2";
+                card.style.borderTopWidth = "4px";
+                card.style.borderTopColor = displayColor;
+                
+                if(isDead) card.style.opacity = "0.6";
+
+                card.innerHTML = `
+                    ${ownerTag}
+                    <div class="p-4 flex-grow flex flex-col relative mt-1">
+                        <button onclick="openCommandModal('${bot._owner}', '${bot._key}', '${bot.Account}', '${bot.Server}')" class="absolute top-0 right-0 text-slate-400 hover:text-white bg-slate-700/50 hover:bg-slate-600 rounded p-2 transition-colors z-10">
+                            <i class="fa-solid fa-gear"></i>
+                        </button>
+
+                        <div class="flex justify-between items-start mb-3 pr-8 mt-1">
+                            <h3 class="text-xl font-bold text-white tracking-wide truncate pr-2" title="${bot.Account}">
+                                <i class="fa-solid fa-user text-slate-500 text-sm mr-1"></i> ${bot.Account}
+                            </h3>
+                            <span class="px-2 py-1 rounded text-xs font-bold whitespace-nowrap bg-slate-900 text-slate-300 border border-slate-700 shadow-inner">
+                                ${bot.Server}
+                            </span>
+                        </div>
+                        
+                        <div class="flex items-center gap-3 mt-auto">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0" style="background-color: ${displayColor}20; color: ${displayColor}">
+                                <i class="fa-solid ${icon}"></i>
+                            </div>
+                            <p class="text-sm font-medium leading-tight line-clamp-2" style="color: ${displayColor}">
+                                ${displayStatus}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-slate-900/50 px-4 py-2 text-[10px] text-slate-500 flex justify-between uppercase tracking-wider border-t border-slate-800">
+                        <span class="truncate pr-2"><i class="fa-solid fa-microchip mr-1"></i> ${bot.MachineName}</span>
+                        <span class="shrink-0"><i class="fa-regular fa-clock mr-1"></i> ${isDead ? Math.floor(diffMinutes) + ' DK ÖNCE' : bot.LastUpdate.split(' ')[1]}</span>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+
+            if (overallTotal === 0 && Object.keys(allBotsData).length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full py-12 text-center text-slate-500">
+                        <i class="fa-solid fa-ghost text-4xl mb-4 opacity-50"></i>
+                        <p>Henüz bu kimliğe veya aramaya ait hiçbir bot verisi gelmedi.</p>
+                        <p class="text-sm mt-1">Botların ayarlar dosyasında 'MusteriID' tanımının yapıldığından emin olun.</p>
+                    </div>`;
+            } else if (filteredCount === 0) {
+                grid.innerHTML = `<div class="col-span-full py-12 text-center text-slate-500">
+                    <i class="fa-solid fa-magnifying-glass text-3xl mb-3 opacity-50"></i>
+                    <p>Aramanızla eşleşen bot bulunamadı.</p>
+                </div>`;
+            }
+
+            const statTotalText = filteredCount === overallTotal ? overallTotal : `${filteredCount} / ${overallTotal}`;
+            document.getElementById('statTotal').innerText = statTotalText;
+            document.getElementById('statOnline').innerText = online;
+            document.getElementById('statError').innerText = errors;
+        }
+
+        // --- 5. ADMİN MÜŞTERİ YÖNETİMİ ---
+        async function openAdminModal() {
+            document.getElementById('adminModal').classList.remove('hidden');
+            await loadAdminUsers();
+        }
+
+        function closeAdminModal() {
+            document.getElementById('adminModal').classList.add('hidden');
+        }
+
+        async function loadAdminUsers() {
+            const tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4"><i class="fa-solid fa-circle-notch fa-spin text-purple-500"></i> Yükleniyor...</td></tr>';
+
+            try {
+                const res = await fetch(`${FIREBASE_URL}Users.json`);
+                const data = await res.json() || {};
+                
+                tbody.innerHTML = '';
+                for (const [userId, details] of Object.entries(data)) {
+                    const roleBadge = details.role === 'admin' 
+                        ? '<span class="bg-purple-900/50 text-purple-400 px-2 py-1 rounded text-xs border border-purple-700">Admin</span>'
+                        : '<span class="bg-slate-700 text-slate-300 px-2 py-1 rounded text-xs border border-slate-600">Kullanıcı</span>';
+
+                    const tr = document.createElement('tr');
+                    tr.className = "border-b border-slate-700/50 hover:bg-slate-800/50 transition-colors";
+                    tr.innerHTML = `
+                        <td class="px-4 py-3 font-bold text-white">${userId}</td>
+                        <td class="px-4 py-3 font-mono text-slate-400">${details.password}</td>
+                        <td class="px-4 py-3">${roleBadge}</td>
+                        <td class="px-4 py-3 text-right">
+                            <button onclick="deleteUser('${userId}')" class="text-red-400 hover:text-red-300 px-2 py-1 bg-red-900/30 rounded border border-red-800/50 transition-colors" title="Sil">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            } catch (error) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-red-400">Hata: ${error}</td></tr>`;
+            }
+        }
+
+        async function createUser() {
+            const id = document.getElementById('newUserId').value.trim().toUpperCase();
+            const pass = document.getElementById('newUserPass').value.trim();
+            const role = document.getElementById('newUserRole').value;
+
+            if(!id || !pass) { alert("ID ve Şifre boş olamaz!"); return; }
+            const safeId = id.replace(/[^a-zA-Z0-9_-]/g, "");
+
+            try {
+                await fetch(`${FIREBASE_URL}Users/${safeId}.json`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ password: pass, role: role })
+                });
+                document.getElementById('newUserId').value = "";
+                document.getElementById('newUserPass').value = "";
+                await loadAdminUsers(); 
+                await updateAdminUserDropdown();
+            } catch (e) {
+                alert("Oluşturulamadı: " + e);
+            }
+        }
+
+        async function deleteUser(userId) {
+            if(userId === currentMusteriID) {
+                alert("Kendinizi silemezsiniz!"); return;
+            }
+            if(confirm(`${userId} kullanıcısını silmek istediğinize emin misiniz?`)) {
+                try {
+                    await fetch(`${FIREBASE_URL}Users/${userId}.json`, { method: 'DELETE' });
+                    await loadAdminUsers();
+                    await updateAdminUserDropdown(); 
+                } catch (e) {
+                    alert("Silinemedi: " + e);
+                }
+            }
+        }
+
+        // --- 6. GEMINI AI FİLO ANALİZİ ENTEGRASYONU ---
+        
+        async function fetchWithRetry(url, options, maxRetries = 5) {
+            const delays = [1000, 2000, 4000, 8000, 16000];
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (!response.ok) {
+                        const errText = await response.text();
+                        throw new Error(`HTTP Error: ${response.status} - ${errText}`);
+                    }
+                    return await response.json();
+                } catch (error) {
+                    if (i === maxRetries - 1) throw error;
+                    await new Promise(resolve => setTimeout(resolve, delays[i]));
+                }
+            }
+        }
+
+        function openAiAnalysisModal() {
+            if (filteredBotsList.length === 0) {
+                alert("Analiz edilecek bot bulunmuyor! Lütfen verilerin yüklenmesini bekleyin.");
+                return;
+            }
+            
+            document.getElementById('aiAnalysisModal').classList.remove('hidden');
+            analyzeFleet();
+        }
+
+        function closeAiAnalysisModal() {
+            document.getElementById('aiAnalysisModal').classList.add('hidden');
+        }
+
+        async function analyzeFleet() {
+            const aiContentArea = document.getElementById('aiContentArea');
+            
+            aiContentArea.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-10 space-y-4">
+                    <i class="fa-solid fa-circle-notch fa-spin text-4xl text-purple-500"></i>
+                    <p class="text-purple-300 animate-pulse text-center">Gemini Yapay Zekası filonun verilerini okuyor ve analiz ediyor...<br><span class="text-xs text-slate-500">Bu işlem birkaç saniye sürebilir</span></p>
+                </div>
+            `;
+
+            try {
+                let total = filteredBotsList.length;
+                let statusCounts = {};
+                let serverCounts = {};
+
+                filteredBotsList.forEach(bot => {
+                    statusCounts[bot.status] = (statusCounts[bot.status] || 0) + 1;
+                    serverCounts[bot.server] = (serverCounts[bot.server] || 0) + 1;
+                });
+
+                const promptData = `
+Anlık Filo Verileri:
+Toplam Bot: ${total}
+Durum Dağılımı: ${JSON.stringify(statusCounts)}
+Sunucu Dağılımı: ${JSON.stringify(serverCounts)}
+                `;
+
+                const systemPrompt = "Sen uzman bir Knight Online VDS / Bot Filo Yönetim Asistanısın. Kullanıcı sana filosunun anlık durumunu sayısal olarak verecek. Bu verilere bakarak: 1. Sistemin genel sağlığını analiz et (iyi mi kötü mü?). 2. Anomalileri tespit et (Örneğin: Hapiste (JAIL) veya OFFLINE çok varsa uyar). 3. Sunucularda yığılma veya tehlike varsa belirt. 4. Yöneticiye eylem tavsiyelerinde bulun. Cevabını sadece temiz, kısa ve okunabilir HTML etiketleri kullanarak (<b>, <br>, <ul>, <li> vb.) formatlı bir şekilde ver. Asla gereksiz kod bloğu oluşturma, direkt metin olarak göster.";
+
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                
+                const payload = {
+                    contents: [{ parts: [{ text: promptData }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] }
+                };
+
+                const options = {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                };
+
+                const result = await fetchWithRetry(url, options);
+                
+                const responseText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (responseText) {
+                    aiContentArea.innerHTML = responseText;
+                } else {
+                    throw new Error("Yapay zekadan boş yanıt geldi.");
+                }
+
+            } catch (error) {
+                console.error("AI Analysis Error:", error);
+                aiContentArea.innerHTML = `
+                    <div class="text-center py-6">
+                        <i class="fa-solid fa-triangle-exclamation text-4xl text-red-500 mb-3"></i>
+                        <h3 class="text-lg font-bold text-red-400">Analiz Tamamlanamadı</h3>
+                        <p class="text-slate-400 mt-2 text-sm">${error.message}</p>
+                        <p class="text-slate-500 mt-4 text-xs">Not: Gemini API yapılandırmasının veya ağ bağlantısının doğru olduğundan emin olun.</p>
+                    </div>
+                `;
+            }
+        }
+
+    </script>
+</body>
+</html>
