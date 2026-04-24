@@ -4,6 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KNIGHT GÖZCÜ - Canlı Kontrol Merkezi</title>
+    
+    <!-- ÜST DÜZEY GÜVENLİK PROTOKOLÜ (Sitenin en başında çalışır) -->
+    <script>
+        // 1. GİZLİ ANAHTAR KONTROLÜ (Bu anahtar olmadan site yüklenmez ve kodlar okunamaz)
+        const urlParams = new URLSearchParams(window.location.search);
+        // "anahtar" kelimesinin karşılığı "diyon" olmalıdır. Kendine göre değiştirebilirsin.
+        if (urlParams.get('anahtar') !== 'diyon') {
+            // Anahtar yanlışsa veya yoksa sayfayı sahte bir 404 sayfasına çevir
+            document.documentElement.innerHTML = '<body style="background-color: #0f172a; display: flex; justify-content: center; align-items: center; height: 100vh; color: #334155; font-family: sans-serif; margin: 0;"><h1>404 Not Found</h1></body>';
+            // Kodun geri kalanını (Firebase URL vb.) tarayıcının okumasını kesin olarak durdur
+            throw new Error("Yetkisiz erişim denemesi! Güvenlik protokolü devrede."); 
+        }
+
+        // 2. F12 VE SAĞ TIK ENGELLEME
+        document.addEventListener('contextmenu', event => event.preventDefault()); // Sağ tık engeli
+        document.onkeydown = function(e) {
+            if(e.keyCode == 123) return false; // F12 engeli
+            if(e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'C'.charCodeAt(0) || e.keyCode == 'J'.charCodeAt(0))) return false; // Geliştirici konsolu kısayolları engeli
+            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false; // Sayfa kaynağını görüntüle (Ctrl+U) engeli
+        };
+    </script>
+
     <!-- Tailwind CSS (Modern Tasarım İçin) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome (İkonlar) -->
@@ -142,7 +164,7 @@
                     <option value="OFFLINE">⚫ Bağlantısı Kopanlar</option>
                 </select>
 
-                <!-- [YENİ] Ana Sunucu ve Kanal Filtreleri (Ayrı Ayrı) -->
+                <!-- Ana Sunucu ve Kanal Filtreleri (Ayrı Ayrı) -->
                 <select id="baseServerFilter" class="bg-slate-800 border border-slate-600 text-white rounded-lg px-4 py-3 outline-none focus:border-blue-500 shadow-inner cursor-pointer font-medium" onchange="renderBots()">
                     <option value="ALL">🌍 Tüm Sunucular</option>
                 </select>
@@ -468,7 +490,7 @@
             }
         }
 
-        // --- [YENİ] DİNAMİK SUNUCU FİLTRESİ LİSTESİ OLUŞTURUCU ---
+        // --- DİNAMİK SUNUCU FİLTRESİ LİSTESİ OLUŞTURUCU ---
         function updateServerDropdown() {
             const baseFilter = document.getElementById('baseServerFilter');
             const channelFilter = document.getElementById('channelFilter');
@@ -718,7 +740,7 @@
                 // Durum filtresi kontrolü
                 if (filterValue !== "ALL" && botCategory !== filterValue) return;
 
-                // [YENİ] Ana Sunucu ve Kanal filtresi kontrolü
+                // Ana Sunucu ve Kanal filtresi kontrolü
                 let botBaseServer = "";
                 let botChannel = "";
                 if (bot.Server) {
