@@ -7,23 +7,31 @@
     
     <!-- ÜST DÜZEY GÜVENLİK PROTOKOLÜ (Sitenin en başında çalışır) -->
     <script>
-        // 1. GİZLİ ANAHTAR KONTROLÜ (Bu anahtar olmadan site yüklenmez ve kodlar okunamaz)
+        // 1. GİZLİ ANAHTAR KONTROLÜ
         const urlParams = new URLSearchParams(window.location.search);
-        // "anahtar" kelimesinin karşılığı "diyon" olmalıdır. Kendine göre değiştirebilirsin.
-        if (urlParams.get('anahtar') !== 'diyon') {
-            // Anahtar yanlışsa veya yoksa sayfayı sahte bir 404 sayfasına çevir
+        
+        // [YENİ]: Canvas önizleme ekranı, localhost veya dosyadan direkt açılışlar için istisna (Hata vermemesi için)
+        const isLocalOrPreview = window.location.hostname.includes('usercontent.goog') || 
+                                 window.location.hostname === 'localhost' || 
+                                 window.location.hostname === '127.0.0.1' || 
+                                 window.location.protocol === 'file:' ||
+                                 window.location.protocol === 'blob:';
+
+        // Önizleme ekranında DEĞİLSEK ve anahtar da yanlışsa ("diyon" değilse) sistemi kilitle!
+        if (!isLocalOrPreview && urlParams.get('anahtar') !== 'diyon') {
             document.documentElement.innerHTML = '<body style="background-color: #0f172a; display: flex; justify-content: center; align-items: center; height: 100vh; color: #334155; font-family: sans-serif; margin: 0;"><h1>404 Not Found</h1></body>';
-            // Kodun geri kalanını (Firebase URL vb.) tarayıcının okumasını kesin olarak durdur
             throw new Error("Yetkisiz erişim denemesi! Güvenlik protokolü devrede."); 
         }
 
-        // 2. F12 VE SAĞ TIK ENGELLEME
-        document.addEventListener('contextmenu', event => event.preventDefault()); // Sağ tık engeli
-        document.onkeydown = function(e) {
-            if(e.keyCode == 123) return false; // F12 engeli
-            if(e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'C'.charCodeAt(0) || e.keyCode == 'J'.charCodeAt(0))) return false; // Geliştirici konsolu kısayolları engeli
-            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false; // Sayfa kaynağını görüntüle (Ctrl+U) engeli
-        };
+        // 2. F12 VE SAĞ TIK ENGELLEME (Önizleme modunda değilsen çalışır)
+        if (!isLocalOrPreview) {
+            document.addEventListener('contextmenu', event => event.preventDefault()); 
+            document.onkeydown = function(e) {
+                if(e.keyCode == 123) return false; 
+                if(e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'C'.charCodeAt(0) || e.keyCode == 'J'.charCodeAt(0))) return false; 
+                if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false; 
+            };
+        }
     </script>
 
     <!-- Tailwind CSS (Modern Tasarım İçin) -->
@@ -740,26 +748,27 @@
             });
 
             botList.forEach(bot => {
-                const lastUpd = parseCustomDate(bot.LastUpdate);
+                const lastUpd = parseCustomDate(bot.LastUpdate || "01.01.2000 00:00:00");
                 const diffMinutes = (new Date() - lastUpd) / 1000 / 60;
                 
                 let isDead = false;
                 let displayColor = colorMap[bot.ColorCode] || colorMap["gray"];
-                let displayStatus = bot.StatusMsg;
-                let statusCode = bot.StatusCode;
+                let displayStatus = bot.StatusMsg || "Veri Bekleniyor...";
+                let statusCode = bot.StatusCode || "WAITING";
 
-                if (diffMinutes > 4) {
+                // VDS botu çok uzun süre veri atmazsa ölü say
+                if (diffMinutes > 4 && bot.LastUpdate) {
                     isDead = true;
                     displayColor = colorMap["gray"];
                     displayStatus = "BAĞLANTI KOPTU (Bot Kapalı)";
                     statusCode = "OFFLINE";
-                } else {
+                } else if (bot.LastUpdate) {
                     if (bot.ColorCode === "green") online++;
                     if (["red", "purple", "black"].includes(bot.ColorCode)) errors++;
                 }
 
                 if (searchTerm) {
-                    const searchStr = `${bot.Account} ${bot.Server} ${bot._owner}`.toLowerCase();
+                    const searchStr = `${bot.Account} ${bot.Server} ${bot._owner} ${bot.WebCharName}`.toLowerCase();
                     if (!searchStr.includes(searchTerm)) return; 
                 }
 
@@ -769,10 +778,8 @@
                 else if (statusCode === "JAIL" || statusCode === "BLACKLIST") botCategory = "JAIL";
                 else if (["OTP_ERROR", "NPC_ERROR", "TIME_ERROR"].includes(statusCode)) botCategory = "ERROR";
 
-                // Durum filtresi kontrolü
                 if (filterValue !== "ALL" && botCategory !== filterValue) return;
 
-                // Ana Sunucu ve Kanal filtresi kontrolü
                 let botBaseServer = "";
                 let botChannel = "";
                 if (bot.Server) {
@@ -784,7 +791,6 @@
                 if (baseServerValue !== "ALL" && botBaseServer !== baseServerValue) return;
                 if (channelValue !== "ALL" && botChannel !== channelValue) return;
 
-                // Analiz ve Toplu Komut için listeye ekliyoruz
                 filteredBotsList.push({ 
                     owner: bot._owner, 
                     key: bot._key, 
@@ -800,6 +806,10 @@
                 const ownerTag = currentUserRole === "admin" 
                     ? `<div class="absolute top-0 left-0 bg-purple-600 text-white text-[10px] font-bold px-2 py-1 rounded-br-lg z-10 shadow">👤 ${bot._owner}</div>` 
                     : "";
+
+                // [YENİ] WEB'DEN ÇEKİLEN VERİLER (Char Name ve Coin)
+                const webCharName = bot.WebCharName ? bot.WebCharName : "Bekleniyor...";
+                const webCoin = bot.WebCoin ? bot.WebCoin : "0";
 
                 const card = document.createElement('div');
                 card.className = "bot-card bg-slate-800 rounded-xl overflow-hidden relative border border-slate-700 flex flex-col pt-2";
@@ -820,8 +830,18 @@
                                 <i class="fa-solid fa-user text-slate-500 text-sm mr-1"></i> ${bot.Account}
                             </h3>
                             <span class="px-2 py-1 rounded text-xs font-bold whitespace-nowrap bg-slate-900 text-slate-300 border border-slate-700 shadow-inner">
-                                ${bot.Server}
+                                ${bot.Server || 'SERVER YOK'}
                             </span>
+                        </div>
+                        
+                        <!-- WEB SİTESİNDEN GELEN COİN VE CHAR BİLGİSİ -->
+                        <div class="flex justify-between items-center mb-3 bg-slate-900/50 p-2 rounded border border-slate-700/50 shadow-inner">
+                            <div class="text-[11px] font-bold text-purple-300 truncate pr-2" title="Karakter Adı">
+                                <i class="fa-solid fa-user-ninja mr-1 opacity-70"></i>${webCharName}
+                            </div>
+                            <div class="text-[12px] font-extrabold text-yellow-400 whitespace-nowrap" title="Mevcut Coin">
+                                <i class="fa-solid fa-coins mr-1 opacity-80"></i>${webCoin}
+                            </div>
                         </div>
                         
                         <div class="flex items-center gap-3 mt-auto">
@@ -835,8 +855,8 @@
                     </div>
                     
                     <div class="bg-slate-900/50 px-4 py-2 text-[10px] text-slate-500 flex justify-between uppercase tracking-wider border-t border-slate-800">
-                        <span class="truncate pr-2"><i class="fa-solid fa-microchip mr-1"></i> ${bot.MachineName}</span>
-                        <span class="shrink-0"><i class="fa-regular fa-clock mr-1"></i> ${isDead ? Math.floor(diffMinutes) + ' DK ÖNCE' : bot.LastUpdate.split(' ')[1]}</span>
+                        <span class="truncate pr-2"><i class="fa-solid fa-microchip mr-1"></i> ${bot.MachineName || 'PC'}</span>
+                        <span class="shrink-0"><i class="fa-regular fa-clock mr-1"></i> ${isDead && bot.LastUpdate ? Math.floor(diffMinutes) + ' DK ÖNCE' : (bot.LastUpdate ? bot.LastUpdate.split(' ')[1] : '--:--')}</span>
                     </div>
                 `;
                 
