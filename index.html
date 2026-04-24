@@ -791,8 +791,18 @@
 
                 if (selectedBotKey === "MASS_ACTION") {
                     const updates = {};
+                    let count = 0;
+                    
                     filteredBotsList.forEach(bot => {
-                        updates[`${bot.owner}/${bot.key}/Command`] = commandData;
+                        // [YENİ] Her 4 botta bir bekleme süresini (delayMs) 10 saniye artır
+                        const groupIndex = Math.floor(count / 4);
+                        const delayMs = groupIndex * 10000;
+                        
+                        updates[`${bot.owner}/${bot.key}/Command`] = {
+                            ...commandData,
+                            delayMs: delayMs
+                        };
+                        count++;
                     });
                     
                     const response = await fetch(`${FIREBASE_URL}Bots.json`, {
@@ -802,12 +812,13 @@
                     });
                     
                     if (response.ok) {
-                        alert(`✅ Komut KAYIPSIZ şekilde ekranda bulunan ${filteredBotsList.length} bota aynı anda iletildi!`);
+                        alert(`✅ Komut ekrandaki ${filteredBotsList.length} bota ZAMANLANMIŞ olarak (Her 10sn'de 4 bot) iletildi!`);
                     } else {
                         throw new Error("Toplu komut sunucu tarafından reddedildi.");
                     }
                 } 
                 else {
+                    commandData.delayMs = 0;
                     const url = `${FIREBASE_URL}Bots/${selectedBotOwner}/${selectedBotKey}/Command.json`;
                     const response = await fetch(url, {
                         method: 'PUT', 
