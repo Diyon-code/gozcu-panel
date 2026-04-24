@@ -337,6 +337,23 @@
         const colorMap = { "green": "#22c55e", "red": "#ef4444", "yellow": "#eab308", "orange": "#f97316", "purple": "#a855f7", "blue": "#3b82f6", "black": "#334155", "gray": "#6b7280" };
         const iconMap = { "ONLINE": "fa-play", "QUEUE": "fa-hourglass-half", "LAUNCHER": "fa-rocket", "OTP_ERROR": "fa-lock", "NPC_ERROR": "fa-triangle-exclamation", "JAIL": "fa-gavel", "BLACKLIST": "fa-skull-crossbones", "TIME_ERROR": "fa-clock", "RESTRICTED_WAIT": "fa-ban", "RESTRICTED_OPEN": "fa-eye-slash", "OFFLINE": "fa-plug-circle-xmark", "DELAY": "fa-stopwatch", "VIP_PASS": "fa-ticket" };
 
+        // Sayfa Yüklendiğinde Oturum Kontrolü Yap
+        window.onload = function() {
+            checkSession();
+        };
+
+        function checkSession() {
+            const savedId = localStorage.getItem('gozcu_session_id');
+            const savedRole = localStorage.getItem('gozcu_session_role');
+            
+            // Eğer tarayıcıda daha önceden kaydedilmiş bir oturum varsa, otomatik giriş yap
+            if (savedId) {
+                currentMusteriID = savedId;
+                currentUserRole = savedRole || "user";
+                loadDashboard();
+            }
+        }
+
         // --- 1. GİRİŞ VE KULLANICI DOĞRULAMA ---
         async function connectToPanel() {
             const idInput = document.getElementById('musteriIdInput').value.trim().toUpperCase();
@@ -364,6 +381,11 @@
                         alert("✅ Kurucu Admin hesabı başarıyla oluşturuldu!\n\nArtık panele giriş yapabilirsiniz.");
                         currentMusteriID = safeId;
                         currentUserRole = "admin";
+                        
+                        // Oturumu tarayıcı hafızasına kaydet
+                        localStorage.setItem('gozcu_session_id', currentMusteriID);
+                        localStorage.setItem('gozcu_session_role', currentUserRole);
+                        
                         loadDashboard();
                     }
                     return;
@@ -372,6 +394,11 @@
                 if (usersData[safeId] && usersData[safeId].password === passInput) {
                     currentMusteriID = safeId;
                     currentUserRole = usersData[safeId].role || "user";
+                    
+                    // Oturumu tarayıcı hafızasına kaydet
+                    localStorage.setItem('gozcu_session_id', currentMusteriID);
+                    localStorage.setItem('gozcu_session_role', currentUserRole);
+                    
                     loadDashboard();
                 } else {
                     alert("❌ Hatalı Müşteri ID veya Şifre!");
@@ -439,6 +466,11 @@
             document.getElementById('adminViewFilter').value = "ALL"; 
             document.getElementById('baseServerFilter').value = "ALL"; 
             document.getElementById('channelFilter').value = "ALL"; 
+            
+            // Çıkış yapıldığında tarayıcı hafızasını tamamen temizle
+            localStorage.removeItem('gozcu_session_id');
+            localStorage.removeItem('gozcu_session_role');
+            
             currentMusteriID = "";
             currentUserRole = "user";
         }
