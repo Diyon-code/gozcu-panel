@@ -59,10 +59,12 @@
         }
 
         /* Scrollbar Gizleme/Güzelleştirme */
-        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar { width: 8px; height: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
         /* AI Gradient Text */
         .ai-text-gradient {
@@ -78,9 +80,12 @@
 
         /* Metin taşmasını önlemek için */
         .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+        /* Tablo satır hover efekti */
+        .table-row-hover:hover { background-color: rgba(51, 65, 85, 0.8); }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col overflow-x-hidden">
 
     <!-- 1. GİRİŞ EKRANI -->
     <div id="loginScreen" class="flex-grow flex items-center justify-center p-4 z-10">
@@ -114,7 +119,7 @@
     <div id="dashboardScreen" class="hidden flex-col min-h-screen p-4 md:p-8 relative z-10">
         
         <!-- Üst Header & İstatistikler -->
-        <header class="glass-panel rounded-xl p-4 md:p-6 mb-6 flex flex-col lg:flex-row justify-between items-center gap-4 border-b-4 border-blue-500">
+        <header class="glass-panel rounded-xl p-4 md:p-6 mb-4 flex flex-col lg:flex-row justify-between items-center gap-4 border-b-4 border-blue-500">
             <div>
                 <h1 class="text-2xl font-bold text-white flex items-center gap-3">
                     <i class="fa-solid fa-shield-halved text-blue-400"></i> KNIGHT GÖZCÜ FİLO KOMUTASI
@@ -131,6 +136,12 @@
                     <div class="text-xs text-slate-400 uppercase tracking-wider" title="Ekranda Görünen / Toplam VDS">Görünen / Toplam</div>
                     <div id="statTotal" class="text-2xl font-bold text-white">0</div>
                 </div>
+
+                <div class="bg-yellow-900/30 px-4 py-2 rounded-lg border border-yellow-800/50 text-center">
+                    <div class="text-xs text-yellow-400 uppercase tracking-wider" title="Ekranda filtrelenmiş olan çarların toplam coini"><i class="fa-solid fa-coins mr-1"></i> Toplam Coin</div>
+                    <div id="statTotalCoin" class="text-2xl font-bold text-yellow-400">0</div>
+                </div>
+
                 <div class="bg-green-900/30 px-4 py-2 rounded-lg border border-green-800/50 text-center pulse-green">
                     <div class="text-xs text-green-400 uppercase tracking-wider">Aktif/Oyunda</div>
                     <div id="statOnline" class="text-2xl font-bold text-green-400">0</div>
@@ -150,7 +161,7 @@
                     <i class="fa-solid fa-users-gear mb-1"></i> Admin
                 </button>
 
-                <!-- [YENİ] Discord Bildirim Ayarları Butonu -->
+                <!-- Discord Bildirim Ayarları Butonu -->
                 <button onclick="openDiscordSettingsModal()" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg transition-colors text-sm flex flex-col items-center justify-center font-bold text-white shadow-lg shadow-indigo-900/50 h-[50px]">
                     <i class="fa-brands fa-discord mb-1"></i> Discord
                 </button>
@@ -160,6 +171,11 @@
                 </button>
             </div>
         </header>
+
+        <!-- GRUPLAR SEKMESİ (PILLS) -->
+        <div class="mb-4 flex gap-2 overflow-x-auto scrollbar-hide items-center bg-slate-800/50 p-3 rounded-lg border border-slate-700" id="groupFilterPills">
+            <!-- JS ile Gruplar Buraya Gelecek -->
+        </div>
 
         <!-- Arama, Filtreleme ve Toplu İşlem Menüsü -->
         <div class="mb-6 flex flex-wrap gap-4 items-center justify-between bg-slate-800/50 p-3 rounded-lg border border-slate-700">
@@ -190,27 +206,45 @@
                 </select>
                 
                 <div class="flex gap-2">
+                    <!-- GÖRÜNÜM DEĞİŞTİRME BUTONU -->
+                    <button onclick="toggleViewMode()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-3 rounded-lg font-bold shadow-lg transition-colors flex items-center justify-center border border-blue-500" title="Tablo / Kutu Görünümü Değiştir">
+                        <i id="viewModeIcon" class="fa-solid fa-list text-xl"></i>
+                    </button>
+
+                    <button onclick="clearOfflineBots()" class="bg-slate-800 hover:bg-red-900/80 text-slate-400 hover:text-red-400 px-4 py-3 rounded-lg font-bold shadow-lg transition-colors flex items-center whitespace-nowrap border border-slate-600 hover:border-red-500" title="Bağlantısı kopan tüm çarları siler">
+                        <i class="fa-solid fa-broom mr-2"></i> Kopanları Sil
+                    </button>
+                    
+                    <button onclick="openMassGroupModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-3 rounded-lg font-bold shadow-lg shadow-emerald-900/50 transition-colors flex items-center whitespace-nowrap">
+                        <i class="fa-solid fa-tags mr-2 text-xl"></i> Toplu Grup
+                    </button>
+
                     <button onclick="openMassCommandModal()" class="bg-red-600 hover:bg-red-500 text-white px-5 py-3 rounded-lg font-bold shadow-lg shadow-red-900/50 transition-colors flex items-center whitespace-nowrap">
                         <i class="fa-solid fa-layer-group mr-2 text-xl"></i> Toplu Komut
                     </button>
 
-                    <!-- GEMINI AI ANALİZ BUTONU -->
                     <button onclick="openAiAnalysisModal()" class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white px-5 py-3 rounded-lg font-bold shadow-lg shadow-purple-900/50 transition-colors flex items-center whitespace-nowrap">
                         ✨ Akıllı Analiz
+                    </button>
+                    
+                    <button onclick="openNewGroupModal()" class="bg-slate-700 hover:bg-slate-600 text-white px-5 py-3 rounded-lg font-bold shadow-lg transition-colors flex items-center whitespace-nowrap border border-slate-600">
+                        <i class="fa-solid fa-folder-plus mr-2"></i> Yeni Grup Ekle
                     </button>
                 </div>
             </div>
             
             <div class="text-sm text-slate-400 flex items-center font-semibold bg-slate-800 px-4 py-2 rounded-lg border border-slate-700">
-                <i class="fa-solid fa-rotate animate-spin mr-2" id="refreshIcon"></i> Senkronizasyon: <span id="lastRefreshTime" class="text-green-400 ml-2 font-mono">Şimdi</span>
+                <i class="fa-solid fa-rotate mr-2" id="refreshIcon"></i> Senkronizasyon: <span id="lastRefreshTime" class="text-green-400 ml-2 font-mono">Şimdi</span>
             </div>
         </div>
 
-        <!-- Botların Dizileceği Izgara -->
-        <div id="botsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4"></div>
+        <!-- Botların Dizileceği Kapsayıcı (Grid veya Tablo JS ile çizilir) -->
+        <div id="botsContainer" class="pb-10 overflow-x-auto"></div>
     </div>
 
-    <!-- 3. UZAKTAN KOMUT MODALI -->
+    <!-- ================= MODALLAR ================= -->
+
+    <!-- UZAKTAN KOMUT MODALI -->
     <div id="commandModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="glass-panel p-6 rounded-2xl max-w-md w-full border border-slate-600 shadow-2xl relative overflow-hidden">
             <div id="modalHeaderBg" class="absolute top-0 left-0 w-full h-1 bg-blue-500"></div>
@@ -227,6 +261,11 @@
             <div class="bg-slate-800/50 rounded-lg p-3 mb-5 border border-slate-700">
                 <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">Hedef Makine(ler)</p>
                 <p id="modalTargetName" class="font-bold text-white text-lg truncate"></p>
+                
+                <div id="massActionWarning" class="hidden mt-2 p-2 bg-indigo-900/40 border border-indigo-700 rounded-lg text-xs text-indigo-200">
+                    <i class="fa-solid fa-circle-info mr-1 text-indigo-400"></i>
+                    <strong>Akıllı Dağıtım:</strong> Bu işlem filtrelenen bota uygulanır. Her 10 saniyede 4 bot kuyruğa alınır.
+                </div>
             </div>
 
             <div class="mb-4">
@@ -257,7 +296,64 @@
         </div>
     </div>
 
-    <!-- 4. ADMİN MÜŞTERİ YÖNETİM MODALI -->
+    <!-- GRUPLARI YÖNET MODALI (+ BUTONU) -->
+    <div id="groupManageModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="glass-panel p-6 rounded-2xl max-w-sm w-full border border-slate-600 shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-green-500"></div>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-white flex items-center"><i class="fa-solid fa-tags mr-2 text-green-400"></i> Grupları Yönet</h3>
+                <button onclick="closeGroupManageModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            </div>
+            <div class="bg-slate-800/50 rounded-lg p-3 mb-4 border border-slate-700">
+                <p class="text-xs text-slate-400 uppercase">Seçili Karakter</p>
+                <p id="groupManageBotName" class="font-bold text-white">Seçiliyor...</p>
+            </div>
+            <div id="groupCheckboxes" class="space-y-2 max-h-48 overflow-y-auto pr-2 scrollbar-hide mb-4">
+                <!-- Checkboxlar JS ile dolar -->
+            </div>
+            <button onclick="saveBotGroups()" class="w-full text-white bg-green-600 hover:bg-green-500 font-bold rounded-lg px-5 py-3 shadow-lg transition-colors">
+                Kaydet <i class="fa-solid fa-check ml-2"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- TOPLU GRUP EKLEME MODALI -->
+    <div id="massGroupModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="glass-panel p-6 rounded-2xl max-w-sm w-full border border-emerald-500 shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-emerald-500"></div>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-white flex items-center"><i class="fa-solid fa-tags mr-2 text-emerald-400"></i> Toplu Grup Ekle</h3>
+                <button onclick="closeMassGroupModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            </div>
+            <div class="bg-slate-800/50 rounded-lg p-3 mb-4 border border-slate-700">
+                <p class="text-xs text-emerald-400 uppercase font-bold"><i class="fa-solid fa-circle-info mr-1"></i> Bilgi</p>
+                <p class="text-sm text-slate-300 mt-1">Ekranda filtrelenmiş olan <strong id="massGroupBotCount" class="text-white">0</strong> bota aşağıdaki seçili gruplar eklenecektir.</p>
+            </div>
+            <div id="massGroupCheckboxes" class="space-y-2 max-h-48 overflow-y-auto pr-2 scrollbar-hide mb-4">
+                <!-- Checkboxlar JS ile dolar -->
+            </div>
+            <button onclick="saveMassBotGroups()" id="massGroupSaveBtn" class="w-full text-white bg-emerald-600 hover:bg-emerald-500 font-bold rounded-lg px-5 py-3 shadow-lg transition-colors">
+                Filtrelenenlere Ekle <i class="fa-solid fa-check ml-2"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- YENİ GRUP EKLE MODALI -->
+    <div id="newGroupModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="glass-panel p-6 rounded-2xl max-w-sm w-full border border-slate-600 shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-blue-400"></div>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-white flex items-center"><i class="fa-solid fa-folder-plus mr-2 text-blue-400"></i> Yeni Grup Oluştur</h3>
+                <button onclick="closeNewGroupModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            </div>
+            <input type="text" id="newGroupName" placeholder="Örn: Farm Ekibi 1" class="w-full bg-slate-800 border border-slate-600 text-white rounded-lg p-3 mb-4 focus:border-blue-500 outline-none">
+            <button onclick="createNewGroup()" class="w-full text-white bg-blue-600 hover:bg-blue-500 font-bold rounded-lg px-5 py-3 shadow-lg transition-colors">
+                Oluştur <i class="fa-solid fa-plus ml-2"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- ADMİN MÜŞTERİ YÖNETİM MODALI -->
     <div id="adminModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="glass-panel p-6 rounded-2xl max-w-2xl w-full border border-purple-500 shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
             <div class="absolute top-0 left-0 w-full h-1 bg-purple-500"></div>
@@ -304,7 +400,7 @@
         </div>
     </div>
 
-    <!-- 5. GEMINI AI ANALİZ MODALI -->
+    <!-- GEMINI AI ANALİZ MODALI -->
     <div id="aiAnalysisModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="glass-panel p-6 rounded-2xl max-w-3xl w-full border border-purple-500 shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
             <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-blue-500"></div>
@@ -334,7 +430,7 @@
         </div>
     </div>
 
-    <!-- 6. [YENİ] DISCORD AYARLARI MODALI -->
+    <!-- DISCORD AYARLARI MODALI -->
     <div id="discordModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="glass-panel p-6 rounded-2xl max-w-md w-full border border-indigo-500 shadow-2xl relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-1 bg-indigo-500"></div>
@@ -379,26 +475,27 @@
         let currentUserRole = "user"; 
         let refreshInterval = null;
         let allBotsData = {}; 
-        let previousBotsData = {}; // [YENİ] Discord kontrolü için önceki verileri tutar
+        let previousBotsData = {}; 
         
+        let allGroups = [];
+        let globalGroupsData = {};
+        let currentFilter = 'ALL';
+
         let selectedBotKey = ""; 
         let selectedBotOwner = ""; 
-        let filteredBotsList = []; // Analiz ve Toplu işlem için kullanılan liste
-        let lastKnownServers = ""; // Dinamik Sunucu Filtresi kontrolü için
+        let filteredBotsList = []; 
+        let lastKnownServers = ""; 
+        
+        let currentViewMode = 'grid'; // Varsayılan görünüm 'grid' veya 'list'
 
         const colorMap = { "green": "#22c55e", "red": "#ef4444", "yellow": "#eab308", "orange": "#f97316", "purple": "#a855f7", "blue": "#3b82f6", "black": "#334155", "gray": "#6b7280" };
         const iconMap = { "ONLINE": "fa-play", "QUEUE": "fa-hourglass-half", "LAUNCHER": "fa-rocket", "OTP_ERROR": "fa-lock", "NPC_ERROR": "fa-triangle-exclamation", "JAIL": "fa-gavel", "BLACKLIST": "fa-skull-crossbones", "TIME_ERROR": "fa-clock", "RESTRICTED_WAIT": "fa-ban", "RESTRICTED_OPEN": "fa-eye-slash", "OFFLINE": "fa-plug-circle-xmark", "DELAY": "fa-stopwatch", "VIP_PASS": "fa-ticket", "RESTARTING": "fa-skull-crossbones" };
 
-        // Sayfa Yüklendiğinde Oturum Kontrolü Yap
-        window.onload = function() {
-            checkSession();
-        };
+        window.onload = function() { checkSession(); };
 
         function checkSession() {
             const savedId = localStorage.getItem('gozcu_session_id');
             const savedRole = localStorage.getItem('gozcu_session_role');
-            
-            // Eğer tarayıcıda daha önceden kaydedilmiş bir oturum varsa, otomatik giriş yap
             if (savedId) {
                 currentMusteriID = savedId;
                 currentUserRole = savedRole || "user";
@@ -406,14 +503,12 @@
             }
         }
 
-        // --- 1. GİRİŞ VE KULLANICI DOĞRULAMA ---
         async function connectToPanel() {
             const idInput = document.getElementById('musteriIdInput').value.trim().toUpperCase();
             const passInput = document.getElementById('passwordInput').value.trim();
             const btn = document.getElementById('loginBtn');
 
             if(!idInput || !passInput) { alert("Müşteri ID ve Şifre boş bırakılamaz!"); return; }
-            
             const safeId = idInput.replace(/[^a-zA-Z0-9_-]/g, "");
 
             try {
@@ -433,11 +528,8 @@
                         alert("✅ Kurucu Admin hesabı başarıyla oluşturuldu!\n\nArtık panele giriş yapabilirsiniz.");
                         currentMusteriID = safeId;
                         currentUserRole = "admin";
-                        
-                        // Oturumu tarayıcı hafızasına kaydet
                         localStorage.setItem('gozcu_session_id', currentMusteriID);
                         localStorage.setItem('gozcu_session_role', currentUserRole);
-                        
                         loadDashboard();
                     }
                     return;
@@ -446,11 +538,8 @@
                 if (usersData[safeId] && usersData[safeId].password === passInput) {
                     currentMusteriID = safeId;
                     currentUserRole = usersData[safeId].role || "user";
-                    
-                    // Oturumu tarayıcı hafızasına kaydet
                     localStorage.setItem('gozcu_session_id', currentMusteriID);
                     localStorage.setItem('gozcu_session_role', currentUserRole);
-                    
                     loadDashboard();
                 } else {
                     alert("❌ Hatalı Müşteri ID veya Şifre!");
@@ -473,7 +562,6 @@
                 const currentSelection = filterSelect.value || "ALL";
                 
                 filterSelect.innerHTML = '<option value="ALL">🌐 Tümü</option>';
-                
                 for (const userId of Object.keys(usersData)) {
                     filterSelect.innerHTML += `<option value="${userId}">👤 ${userId}</option>`;
                 }
@@ -483,9 +571,7 @@
                 } else {
                     filterSelect.value = "ALL";
                 }
-            } catch (e) {
-                console.error("Kullanıcı listesi admin dropdown'una çekilemedi", e);
-            }
+            } catch (e) { console.error("Kullanıcı listesi hatası", e); }
         }
 
         function loadDashboard() {
@@ -519,20 +605,15 @@
             document.getElementById('baseServerFilter').value = "ALL"; 
             document.getElementById('channelFilter').value = "ALL"; 
             
-            // Çıkış yapıldığında tarayıcı hafızasını tamamen temizle
             localStorage.removeItem('gozcu_session_id');
             localStorage.removeItem('gozcu_session_role');
-            
             currentMusteriID = "";
             currentUserRole = "user";
         }
 
-        // --- 2. BOT VERİLERİNİ ÇEKME VE DİSCORD KONTROLÜ ---
         async function fetchBotData() {
             try {
                 document.getElementById('refreshIcon').classList.add('animate-spin');
-                
-                allBotsData = {}; 
                 
                 const adminViewFilter = document.getElementById('adminViewFilter');
                 let targetId = currentMusteriID;
@@ -543,37 +624,59 @@
                     else targetId = adminViewFilter.value;
                 }
 
-                if (fetchAll) {
-                    const res = await fetch(`${FIREBASE_URL}Bots.json`);
-                    const rawData = await res.json() || {};
-                    
-                    for (const [ownerId, botsObj] of Object.entries(rawData)) {
-                        for (const [botId, botData] of Object.entries(botsObj)) {
+                const [resGroups, resBots] = await Promise.all([
+                    fetch(`${FIREBASE_URL}Panel/Groups.json`).catch(() => null),
+                    fetchAll ? fetch(`${FIREBASE_URL}Bots.json`).catch(() => null) : fetch(`${FIREBASE_URL}Bots/${targetId}.json`).catch(() => null)
+                ]);
+
+                if (resGroups && resGroups.ok) {
+                    globalGroupsData = await resGroups.json() || {};
+                    if (fetchAll) {
+                        allGroups = [];
+                        Object.values(globalGroupsData).forEach(g => {
+                            if (g && typeof g === 'object') allGroups.push(...Object.keys(g));
+                        });
+                        allGroups = [...new Set(allGroups)];
+                    } else {
+                        allGroups = globalGroupsData[targetId] ? Object.keys(globalGroupsData[targetId]) : [];
+                    }
+                } else {
+                    allGroups = [];
+                    globalGroupsData = {};
+                }
+
+                allBotsData = {}; 
+                if (resBots && resBots.ok) {
+                    const rawData = await resBots.json() || {};
+                    if (fetchAll) {
+                        for (const [ownerId, botsObj] of Object.entries(rawData)) {
+                            if(ownerId === "Panel") continue;
+                            for (const [botId, botData] of Object.entries(botsObj)) {
+                                if (botData && typeof botData === 'object' && botData.Account) {
+                                    botData._groupsArray = botData.Groups ? Object.keys(botData.Groups).filter(k => botData.Groups[k] === true) : [];
+                                    allBotsData[`${ownerId}___${botId}`] = { ...botData, _owner: ownerId, _key: botId };
+                                }
+                            }
+                        }
+                    } else {
+                        for (const [botId, botData] of Object.entries(rawData)) {
                             if (botData && typeof botData === 'object' && botData.Account) {
-                                allBotsData[`${ownerId}___${botId}`] = { ...botData, _owner: ownerId, _key: botId };
+                                botData._groupsArray = botData.Groups ? Object.keys(botData.Groups).filter(k => botData.Groups[k] === true) : [];
+                                allBotsData[botId] = { ...botData, _owner: targetId, _key: botId };
                             }
                         }
                     }
-                } else {
-                    const res = await fetch(`${FIREBASE_URL}Bots/${targetId}.json`);
-                    const rawData = await res.json() || {};
-                    
-                    for (const [botId, botData] of Object.entries(rawData)) {
-                        if (botData && typeof botData === 'object' && botData.Account) {
-                            allBotsData[botId] = { ...botData, _owner: targetId, _key: botId };
-                        }
-                    }
                 }
 
-                // [YENİ] Discord Webhook Kontrolü
                 if (localStorage.getItem('gozcu_enable_discord') === 'true') {
                     checkForDiscordAlerts(allBotsData, previousBotsData);
                 }
-                // Bir sonraki kontrol için mevcut durumu kaydet
                 previousBotsData = JSON.parse(JSON.stringify(allBotsData));
 
-                updateServerDropdown(); // Veriler geldikten sonra sunucu açılır menüsünü güncelle
+                updateServerDropdown(); 
+                renderGroupPills();
                 renderBots();
+
                 document.getElementById('lastRefreshTime').innerText = new Date().toLocaleTimeString('tr-TR');
                 setTimeout(() => document.getElementById('refreshIcon').classList.remove('animate-spin'), 500);
             } catch (error) {
@@ -581,7 +684,55 @@
             }
         }
 
-        // --- DISCORD WEBHOOK FONKSİYONLARI ---
+        // --- GÖRÜNÜM DEĞİŞTİRME ---
+        function toggleViewMode() {
+            currentViewMode = currentViewMode === 'grid' ? 'list' : 'grid';
+            document.getElementById('viewModeIcon').className = currentViewMode === 'grid' ? 'fa-solid fa-list text-xl' : 'fa-solid fa-border-all text-xl';
+            renderBots();
+        }
+
+        function renderGroupPills() {
+            const container = document.getElementById('groupFilterPills');
+            const botList = Object.values(allBotsData);
+            
+            let allBtnClass = currentFilter === 'ALL' 
+                ? 'bg-blue-600 text-white shadow-lg border-blue-500' 
+                : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border-slate-600';
+            
+            container.innerHTML = `
+                <button onclick="filterByGroup('ALL')" class="shrink-0 ${allBtnClass} border px-4 py-1.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap">
+                    Tüm Karakterler (<span class="text-xs opacity-80">${botList.length}</span>)
+                </button>
+            `;
+
+            allGroups.forEach(group => {
+                let count = botList.filter(b => b._groupsArray.includes(group)).length;
+                let isActive = currentFilter === group;
+                
+                let btnClass = isActive 
+                    ? 'bg-blue-600 text-white shadow-lg border-blue-500' 
+                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border-slate-600';
+
+                container.innerHTML += `
+                    <div class="relative group shrink-0">
+                        <button onclick="filterByGroup('${group}')" class="${btnClass} border px-4 py-1.5 rounded-lg text-sm font-bold transition-all flex items-center pr-8 whitespace-nowrap">
+                            <i class="fa-solid fa-tag mr-2 opacity-70"></i> ${group} <span class="ml-1 text-xs opacity-70">(${count})</span>
+                        </button>
+                        <button onclick="deleteGroup('${group}', event)" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-400 opacity-60 group-hover:opacity-100 transition-opacity" title="Grubu Sil">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        function filterByGroup(groupName) {
+            currentFilter = groupName;
+            renderGroupPills();
+            renderBots();
+        }
+
+        // --- DISCORD WEBHOOK ---
         function checkForDiscordAlerts(currentData, previousData) {
             const webhookUrl = localStorage.getItem('gozcu_discord_webhook');
             if (!webhookUrl || !webhookUrl.startsWith("http")) return;
@@ -592,7 +743,6 @@
 
                 if (!oldBot) return;
 
-                // Eğer botun durumu güncellendiyse ve "RESTARTING" yani Kapanma moduna geçtiyse Discord'a fırlat
                 if (newBot.LastUpdate !== oldBot.LastUpdate) {
                     if (newBot.StatusCode === "RESTARTING" && oldBot.StatusCode !== "RESTARTING") {
                         sendDiscordWebhook(webhookUrl, newBot);
@@ -609,21 +759,13 @@
                     title: `🚨 OYUN KAPATILDI / DÜŞTÜ`,
                     color: 15158332, 
                     description: `**Hesap:** \`${bot.Account || 'Bilinmiyor'}\`\n**Sunucu:** \`${bot.Server || 'Bilinmiyor'}\`\n**Makine:** \`${bot.MachineName || 'PC'}\`\n**Müşteri:** \`${bot._owner || currentMusteriID}\``,
-                    fields: [
-                        {
-                            name: "Ölüm Sebebi & Rapor",
-                            value: `\`\`\`diff\n- ${bot.StatusMsg || "Bilinmeyen bir hata nedeniyle kapandı."}\n\`\`\``
-                        }
-                    ],
+                    fields: [{ name: "Ölüm Sebebi & Rapor", value: `\`\`\`diff\n- ${bot.StatusMsg || "Bilinmeyen bir hata nedeniyle kapandı."}\n\`\`\`` }],
                     timestamp: new Date().toISOString()
                 }]
             };
 
-            fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            }).catch(err => console.log("Discord Webhook Hatası:", err));
+            fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+                .catch(err => console.log("Discord Webhook Hatası:", err));
         }
 
         function openDiscordSettingsModal() {
@@ -631,11 +773,7 @@
             document.getElementById('enableDiscordAlerts').checked = localStorage.getItem('gozcu_enable_discord') === 'true';
             document.getElementById('discordModal').classList.remove('hidden');
         }
-
-        function closeDiscordSettingsModal() {
-            document.getElementById('discordModal').classList.add('hidden');
-        }
-
+        function closeDiscordSettingsModal() { document.getElementById('discordModal').classList.add('hidden'); }
         function saveDiscordSettings() {
             localStorage.setItem('gozcu_discord_webhook', document.getElementById('discordWebhookInput').value.trim());
             localStorage.setItem('gozcu_enable_discord', document.getElementById('enableDiscordAlerts').checked);
@@ -643,7 +781,6 @@
             alert("✅ Discord bildirim ayarları başarıyla kaydedildi!");
         }
 
-        // --- DİNAMİK SUNUCU FİLTRESİ LİSTESİ OLUŞTURUCU ---
         function updateServerDropdown() {
             const baseFilter = document.getElementById('baseServerFilter');
             const channelFilter = document.getElementById('channelFilter');
@@ -651,7 +788,6 @@
 
             const currentBase = baseFilter.value;
             const currentChannel = channelFilter.value;
-
             const baseServers = new Set();
             const channels = new Set();
 
@@ -667,21 +803,15 @@
             const sortedChannels = Array.from(channels).sort((a, b) => parseInt(a) - parseInt(b));
             
             const signature = sortedBases.join(',') + '|' + sortedChannels.join(',');
-            if (signature === lastKnownServers && baseFilter.options.length > 1) {
-                return;
-            }
+            if (signature === lastKnownServers && baseFilter.options.length > 1) return;
             lastKnownServers = signature;
 
             let baseHtml = '<option value="ALL">🌍 Tüm Sunucular</option>';
-            sortedBases.forEach(base => {
-                baseHtml += `<option value="${base}">📍 ${base}</option>`;
-            });
+            sortedBases.forEach(base => baseHtml += `<option value="${base}">📍 ${base}</option>`);
             baseFilter.innerHTML = baseHtml;
 
             let channelHtml = '<option value="ALL">🔢 Tüm Kanallar</option>';
-            sortedChannels.forEach(ch => {
-                channelHtml += `<option value="${ch}">Kanal ${ch}</option>`;
-            });
+            sortedChannels.forEach(ch => channelHtml += `<option value="${ch}">Kanal ${ch}</option>`);
             channelFilter.innerHTML = channelHtml;
 
             if (Array.from(baseFilter.options).some(o => o.value === currentBase)) baseFilter.value = currentBase;
@@ -700,33 +830,166 @@
             } catch(e) { return new Date(0); }
         }
 
-        // --- 3. KOMUT GÖNDERME İŞLEMLERİ ---
+        // --- GRUPLAR ---
+        function openNewGroupModal() {
+            if (currentUserRole === "admin" && document.getElementById('adminViewFilter').value === "ALL") {
+                alert("Lütfen önce üst menüden grup ekleyeceğiniz müşteriyi seçin (Tümü seçiliyken grup eklenemez).");
+                return;
+            }
+            document.getElementById('newGroupName').value = '';
+            document.getElementById('newGroupModal').classList.remove('hidden');
+        }
+        function closeNewGroupModal() { document.getElementById('newGroupModal').classList.add('hidden'); }
+        
+        async function createNewGroup() {
+            let target = currentUserRole === "admin" ? document.getElementById('adminViewFilter').value : currentMusteriID;
+            let name = document.getElementById('newGroupName').value.trim();
+            if(!name) return alert("Grup adı boş olamaz!");
+            if(allGroups.includes(name)) return alert("Bu grup zaten var!");
+            try {
+                let updates = {}; updates[`Panel/Groups/${target}/${name}`] = true;
+                await fetch(`${FIREBASE_URL}.json`, { method: 'PATCH', body: JSON.stringify(updates) });
+                allGroups.push(name);
+                if (!globalGroupsData[target]) globalGroupsData[target] = {};
+                globalGroupsData[target][name] = true;
+                closeNewGroupModal();
+                renderGroupPills();
+            } catch(e) { alert("Hata: " + e); }
+        }
+
+        async function deleteGroup(name, event) {
+            event.stopPropagation();
+            let target = currentUserRole === "admin" ? document.getElementById('adminViewFilter').value : currentMusteriID;
+            if (target === "ALL") {
+                alert("Genel görünümde grup silemezsiniz. Lütfen üst menüden bir müşteri seçin.");
+                return;
+            }
+            if(!confirm(`'${name}' grubunu tamamen silmek istediğinize emin misiniz?`)) return;
+            try {
+                await fetch(`${FIREBASE_URL}Panel/Groups/${target}/${name}.json`, { method: 'DELETE' });
+                let botUpdates = {};
+                Object.values(allBotsData).forEach(bot => {
+                    if(bot._groupsArray.includes(name) && bot._owner === target) botUpdates[`Bots/${bot._owner}/${bot._key}/Groups/${name}`] = null;
+                });
+                if(Object.keys(botUpdates).length > 0) await fetch(`${FIREBASE_URL}.json`, { method: 'PATCH', body: JSON.stringify(botUpdates) });
+                if(currentFilter === name) currentFilter = 'ALL';
+                fetchBotData();
+            } catch(e) { alert("Hata: " + e); }
+        }
+
+        function openGroupManageModal(owner, key, botName) {
+            selectedBotKey = key; selectedBotOwner = owner;
+            document.getElementById('groupManageBotName').innerText = botName;
+            
+            let bot = allBotsData[`${owner}___${key}`] || allBotsData[key];
+            let currentGroups = bot ? bot._groupsArray : [];
+            let ownerGroups = globalGroupsData[owner] ? Object.keys(globalGroupsData[owner]) : [];
+
+            let html = '';
+            if(ownerGroups.length === 0) {
+                html = '<p class="text-sm text-slate-500 italic">Bu müşteri için hiç grup yok. Önce grup oluşturun.</p>';
+            } else {
+                ownerGroups.forEach(g => {
+                    let checked = currentGroups.includes(g) ? 'checked' : '';
+                    html += `<label class="flex items-center space-x-3 p-2 hover:bg-slate-700 rounded cursor-pointer transition">
+                        <input type="checkbox" value="${g}" class="group-cb form-checkbox h-5 w-5 text-green-500 rounded bg-slate-900 border-slate-600" ${checked}>
+                        <span class="text-slate-300">${g}</span>
+                    </label>`;
+                });
+            }
+            document.getElementById('groupCheckboxes').innerHTML = html;
+            document.getElementById('groupManageModal').classList.remove('hidden');
+        }
+        function closeGroupManageModal() { document.getElementById('groupManageModal').classList.add('hidden'); }
+        
+        async function saveBotGroups() {
+            if(!selectedBotKey) return;
+            let checkboxes = document.querySelectorAll('.group-cb');
+            let newGroupsObj = {};
+            checkboxes.forEach(cb => { if(cb.checked) newGroupsObj[cb.value] = true; });
+            try {
+                await fetch(`${FIREBASE_URL}Bots/${selectedBotOwner}/${selectedBotKey}/Groups.json`, { method: 'PUT', body: JSON.stringify(newGroupsObj) });
+                closeGroupManageModal();
+                fetchBotData();
+            } catch(e) { alert("Hata: " + e); }
+        }
+
+        function openMassGroupModal() {
+            if (filteredBotsList.length === 0) { 
+                alert("Ekranda gruba eklenecek bot bulunmuyor!"); 
+                return; 
+            }
+            let target = currentUserRole === "admin" ? document.getElementById('adminViewFilter').value : currentMusteriID;
+            if (target === "ALL" && currentUserRole === "admin") {
+                alert("Lütfen önce üst menüden işlem yapacağınız müşteriyi seçin (Tümü seçiliyken toplu grup eklenemez).");
+                return;
+            }
+            document.getElementById('massGroupBotCount').innerText = filteredBotsList.length;
+            let ownerGroups = globalGroupsData[target] ? Object.keys(globalGroupsData[target]) : [];
+            let html = '';
+            if(ownerGroups.length === 0) {
+                html = '<p class="text-sm text-slate-500 italic">Bu müşteri için hiç grup yok. Önce grup oluşturun.</p>';
+            } else {
+                ownerGroups.forEach(g => {
+                    html += `<label class="flex items-center space-x-3 p-2 hover:bg-slate-700 rounded cursor-pointer transition">
+                        <input type="checkbox" value="${g}" class="mass-group-cb form-checkbox h-5 w-5 text-emerald-500 rounded bg-slate-900 border-slate-600">
+                        <span class="text-slate-300">${g}</span>
+                    </label>`;
+                });
+            }
+            document.getElementById('massGroupCheckboxes').innerHTML = html;
+            document.getElementById('massGroupModal').classList.remove('hidden');
+        }
+
+        function closeMassGroupModal() { document.getElementById('massGroupModal').classList.add('hidden'); }
+
+        async function saveMassBotGroups() {
+            if (filteredBotsList.length === 0) return;
+            let checkboxes = document.querySelectorAll('.mass-group-cb');
+            let selectedGroups = [];
+            checkboxes.forEach(cb => { if(cb.checked) selectedGroups.push(cb.value); });
+            if (selectedGroups.length === 0) { alert("Lütfen eklenecek en az bir grup seçin!"); return; }
+
+            const btn = document.getElementById('massGroupSaveBtn');
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> İşleniyor...';
+            btn.disabled = true;
+
+            try {
+                let updates = {};
+                filteredBotsList.forEach(bot => {
+                    selectedGroups.forEach(g => { updates[`Bots/${bot.owner}/${bot.key}/Groups/${g}`] = true; });
+                });
+                await fetch(`${FIREBASE_URL}.json`, { method: 'PATCH', body: JSON.stringify(updates) });
+                alert(`✅ Seçilen gruplar ekrandaki toplam ${filteredBotsList.length} bota başarıyla eklendi!`);
+                closeMassGroupModal();
+                fetchBotData();
+            } catch(e) { alert("Hata: " + e); } 
+            finally { btn.innerHTML = 'Filtrelenenlere Ekle <i class="fa-solid fa-check ml-2"></i>'; btn.disabled = false; }
+        }
+
+        // --- UZAKTAN KOMUT MODALI ---
         function openCommandModal(botOwner, botKey, accountName, serverName) {
-            selectedBotOwner = botOwner;
-            selectedBotKey = botKey;
+            selectedBotOwner = botOwner; selectedBotKey = botKey;
             document.getElementById('modalTargetName').innerText = `${accountName} (${serverName})`;
             document.getElementById('modalHeaderBg').className = "absolute top-0 left-0 w-full h-1 bg-blue-500";
+            document.getElementById('massActionWarning').classList.add('hidden');
             document.getElementById('commandModal').classList.remove('hidden');
             toggleCommandInputs();
         }
 
         function openMassCommandModal() {
-            if (filteredBotsList.length === 0) {
-                alert("Ekranda komut gönderilecek hiçbir bot bulunmuyor!");
-                return;
-            }
+            if (filteredBotsList.length === 0) { alert("Ekranda komut gönderilecek bot bulunmuyor!"); return; }
             selectedBotKey = "MASS_ACTION";
-            document.getElementById('modalTargetName').innerText = `🔥 EKRANDAKİ ${filteredBotsList.length} BOTA AYNI ANDA İŞLEM YAPILACAK!`;
+            document.getElementById('modalTargetName').innerText = `🔥 EKRANDAKİ ${filteredBotsList.length} BOTA TOPLU İŞLEM!`;
             document.getElementById('modalHeaderBg').className = "absolute top-0 left-0 w-full h-1 bg-red-500";
+            document.getElementById('massActionWarning').classList.remove('hidden');
             document.getElementById('commandModal').classList.remove('hidden');
             toggleCommandInputs();
         }
 
         function closeCommandModal() {
             document.getElementById('commandModal').classList.add('hidden');
-            selectedBotKey = "";
-            selectedBotOwner = "";
-            document.getElementById('commandParam').value = ""; 
+            selectedBotKey = ""; selectedBotOwner = ""; document.getElementById('commandParam').value = ""; 
         }
 
         function toggleCommandInputs() {
@@ -735,55 +998,40 @@
             const label = document.getElementById('paramLabel');
             const input = document.getElementById('commandParam');
             const help = document.getElementById('paramHelpText');
+            const warningEl = document.getElementById('massActionWarning');
 
-            if (type === 'SET_JAIL') {
-                container.classList.remove('hidden');
-                label.innerText = 'Yeni Hapis Bekleme Süresi (Dakika)';
-                input.placeholder = 'Örn: 60 veya 120';
-                input.type = 'number';
-                help.innerText = 'Gözcü, ayarlanan süre dolana kadar oyunu açmayacaktır.';
-            } else if (type === 'SET_STARTUP') {
-                container.classList.remove('hidden');
-                label.innerText = 'Yeni Sıra Bekleme Süresi (Dakika)';
-                input.placeholder = 'Örn: 20 veya 45';
-                input.type = 'number';
-                help.innerText = 'Oyun başlatıldıktan sonra log güncellenene kadar en fazla bu kadar bekler.';
-            } else if (type === 'SET_KARALISTE') {
-                container.classList.remove('hidden');
-                label.innerText = 'Yeni Karaliste Bekleme Süresi (Dakika)';
-                input.placeholder = 'Örn: 15 veya 30';
-                input.type = 'number';
-                help.innerText = 'Karalisteye düşünce oyunun yeniden açılması için beklenecek süre.';
+            if (warningEl && !warningEl.classList.contains('hidden')) {
+                if (type === 'KILL_GAME') {
+                    warningEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1 text-red-400"></i><strong class="text-red-400">ACİL DURUM:</strong> Bu işlem bekletilmeden tüm botlara <strong>ANINDA</strong> yollanır!';
+                    warningEl.className = "mt-2 p-2 bg-red-900/40 border border-red-700 rounded-lg text-xs text-red-200";
+                } else {
+                    warningEl.innerHTML = '<i class="fa-solid fa-circle-info mr-1 text-indigo-400"></i><strong>Akıllı Dağıtım:</strong> Bu işlem filtrelenen bota uygulanır. Her 10 saniyede 4 bot kuyruğa alınır.';
+                    warningEl.className = "mt-2 p-2 bg-indigo-900/40 border border-indigo-700 rounded-lg text-xs text-indigo-200";
+                }
+            }
+
+            if (['SET_JAIL', 'SET_STARTUP', 'SET_KARALISTE'].includes(type)) {
+                container.classList.remove('hidden'); label.innerText = 'Yeni Süre (Dakika)';
+                input.placeholder = 'Örn: 60'; input.type = 'number'; help.innerText = 'Bot, ayarlanan süre boyunca bekler.';
             } else if (type === 'SET_RESTRICT') {
-                container.classList.remove('hidden');
-                label.innerText = 'Yeni Yasaklı Saat Dilimi';
-                input.placeholder = 'Örn: 10:00-19:00';
-                input.type = 'text';
-                help.innerText = 'Yasağı tamamen kaldırmak için YASAKLI_YOK yazabilirsiniz.';
+                container.classList.remove('hidden'); label.innerText = 'Yeni Yasaklı Saat Dilimi';
+                input.placeholder = 'Örn: 10:00-19:00'; input.type = 'text'; help.innerText = 'Kaldırmak için YASAKLI_YOK yazabilirsiniz.';
             } else {
-                container.classList.add('hidden');
-                input.value = ''; 
+                container.classList.add('hidden'); input.value = ''; 
             }
         }
 
         async function sendRemoteCommand() {
             if (!selectedBotKey) return;
-
             const type = document.getElementById('commandType').value;
             const param = document.getElementById('commandParam').value.trim();
             const btn = document.getElementById('sendCmdBtn');
 
-            if ((type === 'SET_JAIL' || type === 'SET_STARTUP' || type === 'SET_KARALISTE' || type === 'SET_RESTRICT') && !param) {
-                alert("Lütfen bir değer giriniz!");
-                return;
+            if (['SET_JAIL', 'SET_STARTUP', 'SET_KARALISTE', 'SET_RESTRICT'].includes(type) && !param) {
+                alert("Lütfen bir değer giriniz!"); return;
             }
 
-            const commandData = {
-                action: type,
-                param: param,
-                timestamp: new Date().getTime(),
-                status: "PENDING"
-            };
+            const commandData = { action: type, param: param, timestamp: new Date().getTime(), status: "PENDING" };
 
             try {
                 btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Gönderiliyor...';
@@ -792,67 +1040,46 @@
                 if (selectedBotKey === "MASS_ACTION") {
                     const updates = {};
                     let count = 0;
+                    let isKillCommand = (type === 'KILL_GAME');
                     
                     filteredBotsList.forEach(bot => {
-                        // [YENİ] Her 4 botta bir bekleme süresini (delayMs) 10 saniye artır
-                        const groupIndex = Math.floor(count / 4);
-                        const delayMs = groupIndex * 10000;
-                        
-                        updates[`${bot.owner}/${bot.key}/Command`] = {
-                            ...commandData,
-                            delayMs: delayMs
-                        };
+                        const delayMs = isKillCommand ? 0 : Math.floor(count / 4) * 10000;
+                        updates[`Bots/${bot.owner}/${bot.key}/Command`] = { ...commandData, delayMs: delayMs };
                         count++;
                     });
                     
-                    const response = await fetch(`${FIREBASE_URL}Bots.json`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(updates)
-                    });
-                    
+                    const response = await fetch(`${FIREBASE_URL}.json`, { method: 'PATCH', body: JSON.stringify(updates) });
                     if (response.ok) {
-                        alert(`✅ Komut ekrandaki ${filteredBotsList.length} bota ZAMANLANMIŞ olarak (Her 10sn'de 4 bot) iletildi!`);
-                    } else {
-                        throw new Error("Toplu komut sunucu tarafından reddedildi.");
-                    }
-                } 
-                else {
+                        if (isKillCommand) alert(`🚨 Acil Kapatma komutu ekrandaki ${filteredBotsList.length} bota ANINDA (Sırasız) iletildi!`);
+                        else alert(`✅ Komut ekrandaki ${filteredBotsList.length} bota (Her 10sn'de 4 bot) iletildi!`);
+                    } else throw new Error("Toplu komut reddedildi.");
+                } else {
                     commandData.delayMs = 0;
-                    const url = `${FIREBASE_URL}Bots/${selectedBotOwner}/${selectedBotKey}/Command.json`;
-                    const response = await fetch(url, {
-                        method: 'PUT', 
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(commandData)
+                    const response = await fetch(`${FIREBASE_URL}Bots/${selectedBotOwner}/${selectedBotKey}/Command.json`, {
+                        method: 'PUT', body: JSON.stringify(commandData)
                     });
-                    
                     if(response.ok) alert("✅ Komut başarıyla tekil makineye iletildi!");
-                    else throw new Error("Ağ hatası veya sunucu reddetti.");
+                    else throw new Error("Ağ hatası.");
                 }
-
                 closeCommandModal();
-
-            } catch (error) {
-                alert("❌ Hata: " + error.message);
-            } finally {
-                btn.innerHTML = 'GÖNDER <i class="fa-solid fa-paper-plane ml-2"></i>';
-                btn.disabled = false;
-            }
+            } catch (error) { alert("❌ Hata: " + error.message); } 
+            finally { btn.innerHTML = 'GÖNDER <i class="fa-solid fa-paper-plane ml-2"></i>'; btn.disabled = false; }
         }
 
-        // --- 4. EKRANA ÇİZME VE FİLTRELEME ---
+        // --- 4. EKRANA ÇİZME VE FİLTRELEME (GÜNCELLENDİ) ---
         function renderBots() {
-            const grid = document.getElementById('botsGrid');
+            const container = document.getElementById('botsContainer');
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const filterValue = document.getElementById('statusFilter').value; 
             const baseServerValue = document.getElementById('baseServerFilter').value; 
             const channelValue = document.getElementById('channelFilter').value; 
             
-            grid.innerHTML = ""; 
+            container.innerHTML = ""; 
             
             let filteredCount = 0; 
             let online = 0;        
             let errors = 0;        
+            let totalCoinValue = 0; 
             
             filteredBotsList = [];
 
@@ -860,11 +1087,31 @@
             const overallTotal = botList.length; 
             
             botList.sort((a, b) => {
-                if(currentUserRole === "admin" && a._owner !== b._owner) {
-                    return a._owner.localeCompare(b._owner);
-                }
+                if(currentUserRole === "admin" && a._owner !== b._owner) return a._owner.localeCompare(b._owner);
                 return a.Account.localeCompare(b.Account, undefined, {numeric: true, sensitivity: 'base'});
             });
+
+            // Tablo görünümü için HTML başlangıcı (INV kaldırıldı, Materyal eklendi)
+            let tableHTML = `
+                <table class="w-full text-left text-sm text-slate-300 min-w-max border-collapse">
+                    <thead class="text-xs uppercase bg-slate-800 text-slate-400 sticky top-0 border-b-2 border-slate-600 z-10">
+                        <tr>
+                            <th class="px-4 py-3">Hesap / Sunucu</th>
+                            <th class="px-4 py-3">Karakter</th>
+                            <th class="px-4 py-3">Durum</th>
+                            <th class="px-4 py-3 text-right">Coin</th>
+                            <th class="px-4 py-3 text-center">Hedef (Target)</th>
+                            <th class="px-4 py-3 text-center">Materyal</th>
+                            <th class="px-4 py-3 text-center">Premium</th>
+                            <th class="px-4 py-3 text-center">İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            // Grid görünümü için DOM nesnesi
+            let gridDiv = document.createElement('div');
+            gridDiv.className = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4";
 
             botList.forEach(bot => {
                 const lastUpd = parseCustomDate(bot.LastUpdate || "01.01.2000 00:00:00");
@@ -875,19 +1122,15 @@
                 let displayStatus = bot.StatusMsg || "Veri Bekleniyor...";
                 let statusCode = bot.StatusCode || "WAITING";
 
-                // VDS botu çok uzun süre veri atmazsa ölü say
                 if (diffMinutes > 4 && bot.LastUpdate) {
-                    isDead = true;
-                    displayColor = colorMap["gray"];
-                    displayStatus = "BAĞLANTI KOPTU (Bot Kapalı)";
-                    statusCode = "OFFLINE";
+                    isDead = true; displayColor = colorMap["gray"]; displayStatus = "BAĞLANTI KOPTU"; statusCode = "OFFLINE";
                 } else if (bot.LastUpdate) {
                     if (bot.ColorCode === "green") online++;
                     if (["red", "purple", "black"].includes(bot.ColorCode)) errors++;
                 }
 
                 if (searchTerm) {
-                    const searchStr = `${bot.Account} ${bot.Server} ${bot._owner} ${bot.WebCharName}`.toLowerCase();
+                    const searchStr = `${bot.Account} ${bot.Server} ${bot._owner} ${bot.WebCharName} ${bot.WebTarget} ${bot.WebPremium}`.toLowerCase();
                     if (!searchStr.includes(searchTerm)) return; 
                 }
 
@@ -898,200 +1141,236 @@
                 else if (["OTP_ERROR", "NPC_ERROR", "TIME_ERROR", "RESTARTING"].includes(statusCode)) botCategory = "ERROR";
 
                 if (filterValue !== "ALL" && botCategory !== filterValue) return;
+                
+                if (currentFilter !== "ALL" && !bot._groupsArray.includes(currentFilter)) return;
 
-                let botBaseServer = "";
-                let botChannel = "";
+                let botBaseServer = ""; let botChannel = "";
                 if (bot.Server) {
                     const parts = bot.Server.split('-');
-                    botBaseServer = parts[0] || "";
-                    botChannel = parts[1] || "";
+                    botBaseServer = parts[0] || ""; botChannel = parts[1] || "";
                 }
-
                 if (baseServerValue !== "ALL" && botBaseServer !== baseServerValue) return;
                 if (channelValue !== "ALL" && botChannel !== channelValue) return;
 
-                filteredBotsList.push({ 
-                    owner: bot._owner, 
-                    key: bot._key, 
-                    account: bot.Account, 
-                    server: bot.Server, 
-                    status: statusCode 
-                });
-                
+                filteredBotsList.push({ owner: bot._owner, key: bot._key, account: bot.Account, server: bot.Server, status: statusCode });
                 filteredCount++;
                 
                 const icon = iconMap[statusCode] || "fa-desktop";
-
-                const ownerTag = currentUserRole === "admin" 
-                    ? `<div class="absolute top-0 left-0 bg-purple-600 text-white text-[10px] font-bold px-2 py-1 rounded-br-lg z-10 shadow">👤 ${bot._owner}</div>` 
-                    : "";
-
-                const webCharName = bot.WebCharName ? bot.WebCharName : "Bekleniyor...";
-                const webCoin = bot.WebCoin ? bot.WebCoin : "0";
-
-                const card = document.createElement('div');
-                card.className = "bot-card bg-slate-800 rounded-xl overflow-hidden relative border border-slate-700 flex flex-col pt-2";
-                card.style.borderTopWidth = "4px";
-                card.style.borderTopColor = displayColor;
                 
-                if(isDead) card.style.opacity = "0.6";
-
-                card.innerHTML = `
-                    ${ownerTag}
-                    <div class="p-4 flex-grow flex flex-col relative mt-1">
-                        <button onclick="openCommandModal('${bot._owner}', '${bot._key}', '${bot.Account}', '${bot.Server}')" class="absolute top-0 right-0 text-slate-400 hover:text-white bg-slate-700/50 hover:bg-slate-600 rounded p-2 transition-colors z-10">
-                            <i class="fa-solid fa-gear"></i>
-                        </button>
-
-                        <div class="flex justify-between items-start mb-3 pr-8 mt-1">
-                            <h3 class="text-xl font-bold text-white tracking-wide truncate pr-2" title="${bot.Account}">
-                                <i class="fa-solid fa-user text-slate-500 text-sm mr-1"></i> ${bot.Account}
-                            </h3>
-                            <span class="px-2 py-1 rounded text-xs font-bold whitespace-nowrap bg-slate-900 text-slate-300 border border-slate-700 shadow-inner">
-                                ${bot.Server || 'SERVER YOK'}
-                            </span>
-                        </div>
-                        
-                        <div class="flex justify-between items-center mb-3 bg-slate-900/50 p-2 rounded border border-slate-700/50 shadow-inner">
-                            <div class="text-[11px] font-bold text-purple-300 truncate pr-2" title="Karakter Adı">
-                                <i class="fa-solid fa-user-ninja mr-1 opacity-70"></i>${webCharName}
-                            </div>
-                            <div class="text-[12px] font-extrabold text-yellow-400 whitespace-nowrap" title="Mevcut Coin">
-                                <i class="fa-solid fa-coins mr-1 opacity-80"></i>${webCoin}
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-center gap-3 mt-auto">
-                            <div class="w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0" style="background-color: ${displayColor}20; color: ${displayColor}">
-                                <i class="fa-solid ${icon}"></i>
-                            </div>
-                            <!-- UZUN MESAJLARDA EKRAN BOZULMAMASI İÇİN line-clamp EKLENDİ -->
-                            <p class="text-sm font-medium leading-tight line-clamp-2" style="color: ${displayColor}" title="${displayStatus}">
-                                ${displayStatus}
-                            </p>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-slate-900/50 px-4 py-2 text-[10px] text-slate-500 flex justify-between uppercase tracking-wider border-t border-slate-800">
-                        <span class="truncate pr-2"><i class="fa-solid fa-microchip mr-1"></i> ${bot.MachineName || 'PC'}</span>
-                        <span class="shrink-0"><i class="fa-regular fa-clock mr-1"></i> ${isDead && bot.LastUpdate ? Math.floor(diffMinutes) + ' DK ÖNCE' : (bot.LastUpdate ? bot.LastUpdate.split(' ')[1] : '--:--')}</span>
-                    </div>
-                `;
+                // --- ÇEKİLEN YENİ VERİLER ---
+                const webCharName = bot.WebCharName || "-";
+                const webCoinStr = bot.WebCoin || "0";
+                const webTarget = bot.WebTarget || "-";
                 
-                grid.appendChild(card);
+                // Premium Metnini Temizleme (örn: "DISC_PREMIUM (25 Gün)" -> "25 Gün")
+                let webPremium = bot.WebPremium || "-";
+                if (webPremium.includes('(') && webPremium.includes(')')) {
+                    const match = webPremium.match(/\(([^)]+)\)/);
+                    if (match) webPremium = match[1];
+                }
+
+                // --- MATERYAL GÖRÜNÜMÜ OLUŞTURMA ---
+                const webMaterial = bot.WebMaterial || "";
+                let materialHTML = `<span class="text-slate-500">-</span>`;
+                
+                if (webMaterial && webMaterial !== "-") {
+                    const mats = webMaterial.split(/\s+/).filter(m => m.trim() !== "");
+                    if (mats.length > 0) {
+                        materialHTML = mats.map(mat => {
+                            if (mat.startsWith('D:')) return `<span class="bg-[#0ea5e9] text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm">${mat}</span>`;
+                            if (mat.startsWith('P:')) return `<span class="bg-[#f97316] text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm">${mat}</span>`;
+                            if (mat.startsWith('L:')) return `<span class="bg-[#22c55e] text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm">${mat}</span>`;
+                            return `<span class="bg-slate-600 text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm">${mat}</span>`;
+                        }).join('');
+                    }
+                }
+                
+                let numericCoin = parseInt(webCoinStr.toString().replace(/[^0-9]/g, '')) || 0;
+                totalCoinValue += numericCoin;
+
+                // Grup etiketleri
+                let groupTagsHTML = bot._groupsArray.map(g => `<span class="bg-blue-900/40 border border-blue-700/50 text-blue-300 text-[10px] px-2 py-0.5 rounded">${g}</span>`).join(' ');
+
+                if (currentViewMode === 'grid') {
+                    // ====== KART (GRID) GÖRÜNÜMÜ ======
+                    const ownerTag = currentUserRole === "admin" ? `<div class="absolute top-0 left-0 bg-purple-600 text-white text-[10px] font-bold px-2 py-1 rounded-br-lg z-10 shadow">👤 ${bot._owner}</div>` : "";
+                    const card = document.createElement('div');
+                    card.className = "bot-card bg-slate-800 rounded-xl overflow-hidden relative border border-slate-700 flex flex-col pt-2";
+                    card.style.borderTopWidth = "4px"; card.style.borderTopColor = displayColor;
+                    if(isDead) card.style.opacity = "0.6";
+
+                    card.innerHTML = `
+                        ${ownerTag}
+                        <div class="p-4 flex-grow flex flex-col relative mt-1">
+                            <div class="absolute top-2 right-2 flex space-x-1 z-10">
+                                <button onclick="deleteBot('${bot._owner}', '${bot._key}', '${bot.Account || bot.MachineName}')" class="text-slate-400 hover:text-red-500 bg-slate-700/50 hover:bg-red-900/50 rounded p-1.5 transition-colors shadow" title="Listeden Kaldır (Sil)"><i class="fa-solid fa-trash text-sm"></i></button>
+                                <button onclick="openGroupManageModal('${bot._owner}', '${bot._key}', '${bot.Account || bot.MachineName}')" class="text-slate-400 hover:text-white bg-slate-700/50 hover:bg-green-600 rounded p-1.5 transition-colors shadow" title="Grupları Yönet"><i class="fa-solid fa-plus text-sm"></i></button>
+                                <button onclick="openCommandModal('${bot._owner}', '${bot._key}', '${bot.Account}', '${bot.Server}')" class="text-slate-400 hover:text-white bg-slate-700/50 hover:bg-blue-600 rounded p-1.5 transition-colors shadow"><i class="fa-solid fa-gear"></i></button>
+                            </div>
+
+                            <div class="flex justify-between items-start mb-3 pr-16 mt-1">
+                                <h3 class="text-lg font-bold text-white tracking-wide truncate" title="${bot.Account}">
+                                    <i class="fa-solid fa-user text-slate-500 text-sm mr-1"></i> ${bot.Account}
+                                </h3>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <span class="px-2 py-1 rounded text-[11px] font-bold whitespace-nowrap bg-slate-900 text-slate-300 border border-slate-700 shadow-inner">${bot.Server || 'SERVER YOK'}</span>
+                            </div>
+                            
+                            <!-- TEMEL VERİLER -->
+                            <div class="flex justify-between items-center mb-2 bg-slate-900/50 p-2 rounded border border-slate-700/50 shadow-inner">
+                                <div class="text-[11px] font-bold text-purple-300 truncate pr-2"><i class="fa-solid fa-user-ninja mr-1 opacity-70"></i>${webCharName}</div>
+                                <div class="text-[12px] font-extrabold text-yellow-400 whitespace-nowrap"><i class="fa-solid fa-coins mr-1 opacity-80"></i>${webCoinStr}</div>
+                            </div>
+                            
+                            <!-- YENİ DETAY VERİLERİ (INV KALDIRILDI MATERYAL GELDİ) -->
+                            <div class="flex justify-between items-center mb-3 bg-slate-900/30 p-2 rounded text-[10px] text-slate-300">
+                                <div class="truncate pr-2" title="Hedef (Target)"><i class="fa-solid fa-crosshairs text-red-400 mr-1"></i>${webTarget}</div>
+                                <div class="flex gap-1" title="Materyaller">${materialHTML}</div>
+                                <div class="whitespace-nowrap text-right pl-2" title="Premium Süresi"><i class="fa-solid fa-crown text-yellow-500 mr-1"></i>${webPremium}</div>
+                            </div>
+                            
+                            <div class="flex flex-wrap gap-1 min-h-[16px] mb-3">${groupTagsHTML}</div>
+                            
+                            <div class="flex items-center gap-3 mt-auto">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0" style="background-color: ${displayColor}20; color: ${displayColor}"><i class="fa-solid ${icon}"></i></div>
+                                <p class="text-[13px] font-medium leading-tight line-clamp-2" style="color: ${displayColor}" title="${displayStatus}">${displayStatus}</p>
+                            </div>
+                        </div>
+                        <div class="bg-slate-900/50 px-4 py-2 text-[10px] text-slate-500 flex justify-between uppercase tracking-wider border-t border-slate-800">
+                            <span class="truncate pr-2"><i class="fa-solid fa-microchip mr-1"></i> ${bot.MachineName || 'PC'}</span>
+                            <span class="shrink-0"><i class="fa-regular fa-clock mr-1"></i> ${isDead && bot.LastUpdate ? Math.floor(diffMinutes) + ' DK' : (bot.LastUpdate ? bot.LastUpdate.split(' ')[1] : '--:--')}</span>
+                        </div>
+                    `;
+                    gridDiv.appendChild(card);
+                } else {
+                    // ====== LİSTE (TABLE) GÖRÜNÜMÜ ======
+                    tableHTML += `
+                        <tr class="border-b border-slate-700/50 table-row-hover transition-colors ${isDead ? 'opacity-60' : ''}">
+                            <td class="px-4 py-2">
+                                <div class="font-bold text-white flex items-center">
+                                    <div class="w-2 h-2 rounded-full mr-2" style="background-color: ${displayColor}"></div>
+                                    ${bot.Account}
+                                </div>
+                                <div class="text-[10px] text-slate-400 mt-1">${bot.Server || '-'}</div>
+                            </td>
+                            <td class="px-4 py-2 font-bold text-purple-300 text-xs">${webCharName}</td>
+                            <td class="px-4 py-2">
+                                <div class="text-xs font-bold" style="color: ${displayColor}" title="${displayStatus}"><i class="fa-solid ${icon} mr-1"></i>${statusCode}</div>
+                                <div class="text-[10px] text-slate-500">${isDead && bot.LastUpdate ? Math.floor(diffMinutes) + ' Dk' : (bot.LastUpdate ? bot.LastUpdate.split(' ')[1] : '--:--')}</div>
+                            </td>
+                            <td class="px-4 py-2 text-right font-extrabold text-yellow-400 text-sm whitespace-nowrap">${webCoinStr}</td>
+                            <td class="px-4 py-2 text-center text-red-300 text-xs font-medium truncate max-w-[120px]" title="${webTarget}">${webTarget}</td>
+                            <td class="px-4 py-2 text-center">
+                                <div class="flex justify-center items-center gap-1">${materialHTML}</div>
+                            </td>
+                            <td class="px-4 py-2 text-center text-yellow-500 text-[11px] font-medium whitespace-nowrap">${webPremium}</td>
+                            <td class="px-4 py-2 text-center">
+                                <button onclick="openGroupManageModal('${bot._owner}', '${bot._key}', '${bot.Account || bot.MachineName}')" class="text-green-400 hover:text-green-300 p-1 mx-1" title="Grup Ekle"><i class="fa-solid fa-plus"></i></button>
+                                <button onclick="openCommandModal('${bot._owner}', '${bot._key}', '${bot.Account}', '${bot.Server}')" class="text-blue-400 hover:text-blue-300 p-1 mx-1" title="Komut"><i class="fa-solid fa-gear"></i></button>
+                                <button onclick="deleteBot('${bot._owner}', '${bot._key}', '${bot.Account || bot.MachineName}')" class="text-red-400 hover:text-red-300 p-1 mx-1" title="Sil"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                }
             });
 
             if (overallTotal === 0 && Object.keys(allBotsData).length === 0) {
-                grid.innerHTML = `
-                    <div class="col-span-full py-12 text-center text-slate-500">
-                        <i class="fa-solid fa-ghost text-4xl mb-4 opacity-50"></i>
-                        <p>Henüz bu kimliğe veya aramaya ait hiçbir bot verisi gelmedi.</p>
-                        <p class="text-sm mt-1">Botların ayarlar dosyasında 'MusteriID' tanımının yapıldığından emin olun.</p>
-                    </div>`;
+                container.innerHTML = `<div class="py-12 text-center text-slate-500 w-full"><i class="fa-solid fa-ghost text-4xl mb-4 opacity-50"></i><p>Veri bekleniyor...</p></div>`;
             } else if (filteredCount === 0) {
-                grid.innerHTML = `<div class="col-span-full py-12 text-center text-slate-500">
-                    <i class="fa-solid fa-magnifying-glass text-3xl mb-3 opacity-50"></i>
-                    <p>Aramanızla eşleşen bot bulunamadı.</p>
-                </div>`;
+                container.innerHTML = `<div class="py-12 text-center text-slate-500 w-full"><i class="fa-solid fa-magnifying-glass text-3xl mb-3 opacity-50"></i><p>Aramayla eşleşen bot bulunamadı.</p></div>`;
+            } else {
+                if (currentViewMode === 'grid') {
+                    container.appendChild(gridDiv);
+                } else {
+                    tableHTML += `</tbody></table>`;
+                    container.innerHTML = tableHTML;
+                }
             }
 
-            const statTotalText = filteredCount === overallTotal ? overallTotal : `${filteredCount} / ${overallTotal}`;
-            document.getElementById('statTotal').innerText = statTotalText;
+            document.getElementById('statTotal').innerText = filteredCount === overallTotal ? overallTotal : `${filteredCount} / ${overallTotal}`;
+            document.getElementById('statTotalCoin').innerText = new Intl.NumberFormat('tr-TR').format(totalCoinValue);
             document.getElementById('statOnline').innerText = online;
             document.getElementById('statError').innerText = errors;
         }
 
         // --- 5. ADMİN MÜŞTERİ YÖNETİMİ ---
-        async function openAdminModal() {
-            document.getElementById('adminModal').classList.remove('hidden');
-            await loadAdminUsers();
-        }
-
-        function closeAdminModal() {
-            document.getElementById('adminModal').classList.add('hidden');
-        }
+        async function openAdminModal() { document.getElementById('adminModal').classList.remove('hidden'); await loadAdminUsers(); }
+        function closeAdminModal() { document.getElementById('adminModal').classList.add('hidden'); }
 
         async function loadAdminUsers() {
             const tbody = document.getElementById('usersTableBody');
             tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4"><i class="fa-solid fa-circle-notch fa-spin text-purple-500"></i> Yükleniyor...</td></tr>';
-
             try {
                 const res = await fetch(`${FIREBASE_URL}Users.json`);
                 const data = await res.json() || {};
-                
                 tbody.innerHTML = '';
                 for (const [userId, details] of Object.entries(data)) {
                     const roleBadge = details.role === 'admin' 
                         ? '<span class="bg-purple-900/50 text-purple-400 px-2 py-1 rounded text-xs border border-purple-700">Admin</span>'
                         : '<span class="bg-slate-700 text-slate-300 px-2 py-1 rounded text-xs border border-slate-600">Kullanıcı</span>';
-
                     const tr = document.createElement('tr');
                     tr.className = "border-b border-slate-700/50 hover:bg-slate-800/50 transition-colors";
-                    tr.innerHTML = `
-                        <td class="px-4 py-3 font-bold text-white">${userId}</td>
-                        <td class="px-4 py-3 font-mono text-slate-400">${details.password}</td>
-                        <td class="px-4 py-3">${roleBadge}</td>
-                        <td class="px-4 py-3 text-right">
-                            <button onclick="deleteUser('${userId}')" class="text-red-400 hover:text-red-300 px-2 py-1 bg-red-900/30 rounded border border-red-800/50 transition-colors" title="Sil">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </td>
-                    `;
+                    tr.innerHTML = `<td class="px-4 py-3 font-bold text-white">${userId}</td><td class="px-4 py-3 font-mono text-slate-400">${details.password}</td><td class="px-4 py-3">${roleBadge}</td><td class="px-4 py-3 text-right"><button onclick="deleteUser('${userId}')" class="text-red-400 hover:text-red-300 px-2 py-1 bg-red-900/30 rounded border border-red-800/50"><i class="fa-solid fa-trash"></i></button></td>`;
                     tbody.appendChild(tr);
                 }
-            } catch (error) {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-red-400">Hata: ${error}</td></tr>`;
-            }
+            } catch (error) { tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-red-400">Hata: ${error}</td></tr>`; }
         }
 
         async function createUser() {
             const id = document.getElementById('newUserId').value.trim().toUpperCase();
             const pass = document.getElementById('newUserPass').value.trim();
             const role = document.getElementById('newUserRole').value;
-
-            if(!id || !pass) { alert("ID ve Şifre boş olamaz!"); return; }
+            if(!id || !pass) { alert("Boş olamaz!"); return; }
             const safeId = id.replace(/[^a-zA-Z0-9_-]/g, "");
-
             try {
-                await fetch(`${FIREBASE_URL}Users/${safeId}.json`, {
-                    method: 'PUT',
-                    body: JSON.stringify({ password: pass, role: role })
-                });
-                document.getElementById('newUserId').value = "";
-                document.getElementById('newUserPass').value = "";
-                await loadAdminUsers(); 
-                await updateAdminUserDropdown();
-            } catch (e) {
-                alert("Oluşturulamadı: " + e);
-            }
+                await fetch(`${FIREBASE_URL}Users/${safeId}.json`, { method: 'PUT', body: JSON.stringify({ password: pass, role: role }) });
+                document.getElementById('newUserId').value = ""; document.getElementById('newUserPass').value = "";
+                await loadAdminUsers(); await updateAdminUserDropdown();
+            } catch (e) { alert("Hata: " + e); }
         }
 
         async function deleteUser(userId) {
-            if(userId === currentMusteriID) {
-                alert("Kendinizi silemezsiniz!"); return;
-            }
-            if(confirm(`${userId} kullanıcısını silmek istediğinize emin misiniz?`)) {
+            if(userId === currentMusteriID) { alert("Kendinizi silemezsiniz!"); return; }
+            if(confirm(`Silmek istediğinize emin misiniz?`)) {
                 try {
                     await fetch(`${FIREBASE_URL}Users/${userId}.json`, { method: 'DELETE' });
-                    await loadAdminUsers();
-                    await updateAdminUserDropdown(); 
-                } catch (e) {
-                    alert("Silinemedi: " + e);
-                }
+                    await loadAdminUsers(); await updateAdminUserDropdown(); 
+                } catch (e) { alert("Silinemedi: " + e); }
             }
         }
 
-        // --- 6. GEMINI AI FİLO ANALİZİ ENTEGRASYONU ---
-        
+        async function deleteBot(owner, key, accountName) {
+            if(!confirm(`'${accountName}' isimli karakteri (ve varsa alt karakterlerini) listeden kaldırmak istediğinize emin misiniz?\n\nNot: Eğer VDS arka planda hala çalışıyorsa, bot bir sonraki veri gönderişinde listeye geri döner. Bu buton genellikle "Bağlantısı Kopan" eski kayıtları temizlemek içindir.`)) return;
+            try {
+                await fetch(`${FIREBASE_URL}Bots/${owner}/${key}.json`, { method: 'DELETE' });
+                delete allBotsData[`${owner}___${key}`]; delete allBotsData[key]; 
+                fetchBotData(); 
+            } catch(e) { alert("Silme işlemi başarısız: " + e); }
+        }
+
+        async function clearOfflineBots() {
+            let offlineBots = Object.values(allBotsData).filter(bot => {
+                const lastUpd = parseCustomDate(bot.LastUpdate || "01.01.2000 00:00:00");
+                return (new Date() - lastUpd) / 1000 / 60 > 4; 
+            });
+            if(offlineBots.length === 0) { alert("Şu anda temizlenecek 'Bağlantısı Kopmuş' hiçbir bot bulunmuyor. Tüm botlar aktif!"); return; }
+            if(!confirm(`Bağlantısı kopmuş (Ölü) durumdaki toplam ${offlineBots.length} bot veritabanından kalıcı olarak temizlenecek. Onaylıyor musunuz?`)) return;
+            try {
+                let updates = {}; offlineBots.forEach(bot => { updates[`Bots/${bot._owner}/${bot._key}`] = null; });
+                await fetch(`${FIREBASE_URL}.json`, { method: 'PATCH', body: JSON.stringify(updates) });
+                fetchBotData(); alert(`✅ ${offlineBots.length} adet bağlantısı kopmuş bot listeden başarıyla temizlendi!`);
+            } catch (e) { alert("Temizleme sırasında hata oluştu: " + e); }
+        }
+
+        // --- 6. GEMINI AI FİLO ANALİZİ ---
         async function fetchWithRetry(url, options, maxRetries = 5) {
             const delays = [1000, 2000, 4000, 8000, 16000];
             for (let i = 0; i < maxRetries; i++) {
                 try {
                     const response = await fetch(url, options);
-                    if (!response.ok) {
-                        const errText = await response.text();
-                        throw new Error(`HTTP Error: ${response.status} - ${errText}`);
-                    }
+                    if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
                     return await response.json();
                 } catch (error) {
                     if (i === maxRetries - 1) throw error;
@@ -1101,84 +1380,29 @@
         }
 
         function openAiAnalysisModal() {
-            if (filteredBotsList.length === 0) {
-                alert("Analiz edilecek bot bulunmuyor! Lütfen verilerin yüklenmesini bekleyin.");
-                return;
-            }
-            
-            document.getElementById('aiAnalysisModal').classList.remove('hidden');
-            analyzeFleet();
+            if (filteredBotsList.length === 0) { alert("Analiz edilecek bot bulunmuyor!"); return; }
+            document.getElementById('aiAnalysisModal').classList.remove('hidden'); analyzeFleet();
         }
-
-        function closeAiAnalysisModal() {
-            document.getElementById('aiAnalysisModal').classList.add('hidden');
-        }
+        function closeAiAnalysisModal() { document.getElementById('aiAnalysisModal').classList.add('hidden'); }
 
         async function analyzeFleet() {
             const aiContentArea = document.getElementById('aiContentArea');
-            
-            aiContentArea.innerHTML = `
-                <div class="flex flex-col items-center justify-center py-10 space-y-4">
-                    <i class="fa-solid fa-circle-notch fa-spin text-4xl text-purple-500"></i>
-                    <p class="text-purple-300 animate-pulse text-center">Gemini Yapay Zekası filonun verilerini okuyor ve analiz ediyor...<br><span class="text-xs text-slate-500">Bu işlem birkaç saniye sürebilir</span></p>
-                </div>
-            `;
-
+            aiContentArea.innerHTML = `<div class="flex flex-col items-center justify-center py-10 space-y-4"><i class="fa-solid fa-circle-notch fa-spin text-4xl text-purple-500"></i><p class="text-purple-300 animate-pulse text-center">Gemini Yapay Zekası analiz ediyor...</p></div>`;
             try {
-                let total = filteredBotsList.length;
-                let statusCounts = {};
-                let serverCounts = {};
-
+                let total = filteredBotsList.length; let statusCounts = {}; let serverCounts = {};
                 filteredBotsList.forEach(bot => {
                     statusCounts[bot.status] = (statusCounts[bot.status] || 0) + 1;
                     serverCounts[bot.server] = (serverCounts[bot.server] || 0) + 1;
                 });
-
-                const promptData = `
-Anlık Filo Verileri:
-Toplam Bot: ${total}
-Durum Dağılımı: ${JSON.stringify(statusCounts)}
-Sunucu Dağılımı: ${JSON.stringify(serverCounts)}
-                `;
-
-                const systemPrompt = "Sen uzman bir Knight Online VDS / Bot Filo Yönetim Asistanısın. Kullanıcı sana filosunun anlık durumunu sayısal olarak verecek. Bu verilere bakarak: 1. Sistemin genel sağlığını analiz et (iyi mi kötü mü?). 2. Anomalileri tespit et (Örneğin: Hapiste (JAIL) veya OFFLINE çok varsa uyar). 3. Sunucularda yığılma veya tehlike varsa belirt. 4. Yöneticiye eylem tavsiyelerinde bulun. Cevabını sadece temiz, kısa ve okunabilir HTML etiketleri kullanarak (<b>, <br>, <ul>, <li> vb.) formatlı bir şekilde ver. Asla gereksiz kod bloğu oluşturma, direkt metin olarak göster.";
-
+                const promptData = `Toplam Bot: ${total}\nDurum Dağılımı: ${JSON.stringify(statusCounts)}\nSunucu Dağılımı: ${JSON.stringify(serverCounts)}`;
+                const systemPrompt = "Kısa bir filo analizi yap. HTML listeleri kullan (<ul>, <li>). Uyarılacak durumları <b> ile belirt.";
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-                
-                const payload = {
-                    contents: [{ parts: [{ text: promptData }] }],
-                    systemInstruction: { parts: [{ text: systemPrompt }] }
-                };
-
-                const options = {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                };
-
-                const result = await fetchWithRetry(url, options);
-                
-                const responseText = result.candidates?.[0]?.content?.parts?.[0]?.text;
-
-                if (responseText) {
-                    aiContentArea.innerHTML = responseText;
-                } else {
-                    throw new Error("Yapay zekadan boş yanıt geldi.");
-                }
-
-            } catch (error) {
-                console.error("AI Analysis Error:", error);
-                aiContentArea.innerHTML = `
-                    <div class="text-center py-6">
-                        <i class="fa-solid fa-triangle-exclamation text-4xl text-red-500 mb-3"></i>
-                        <h3 class="text-lg font-bold text-red-400">Analiz Tamamlanamadı</h3>
-                        <p class="text-slate-400 mt-2 text-sm">${error.message}</p>
-                        <p class="text-slate-500 mt-4 text-xs">Not: Gemini API yapılandırmasının veya ağ bağlantısının doğru olduğundan emin olun.</p>
-                    </div>
-                `;
-            }
+                const payload = { contents: [{ parts: [{ text: promptData }] }], systemInstruction: { parts: [{ text: systemPrompt }] } };
+                const result = await fetchWithRetry(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+                if (result.candidates?.[0]?.content?.parts?.[0]?.text) aiContentArea.innerHTML = result.candidates[0].content.parts[0].text;
+                else throw new Error("Boş yanıt.");
+            } catch (error) { aiContentArea.innerHTML = `<div class="text-center py-6 text-red-400">Analiz Tamamlanamadı: API Ayarınızı kontrol edin.</div>`; }
         }
-
     </script>
 </body>
 </html>
