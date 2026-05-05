@@ -196,6 +196,13 @@
                     <option value="OFFLINE">⚫ Bağlantısı Kopanlar</option>
                 </select>
 
+                <!-- Irk Filtresi -->
+                <select id="nationFilter" class="bg-slate-800 border border-slate-600 text-white rounded-lg px-4 py-3 outline-none focus:border-blue-500 shadow-inner cursor-pointer font-medium" onchange="renderBots()">
+                    <option value="ALL">⚔️ Tüm Irklar</option>
+                    <option value="Karus">🔴 Sadece Karus</option>
+                    <option value="ElMorad">🔵 Sadece El Morad</option>
+                </select>
+
                 <!-- Ana Sunucu ve Kanal Filtreleri (Ayrı Ayrı) -->
                 <select id="baseServerFilter" class="bg-slate-800 border border-slate-600 text-white rounded-lg px-4 py-3 outline-none focus:border-blue-500 shadow-inner cursor-pointer font-medium" onchange="renderBots()">
                     <option value="ALL">🌍 Tüm Sunucular</option>
@@ -604,6 +611,7 @@
             document.getElementById('adminViewFilter').value = "ALL"; 
             document.getElementById('baseServerFilter').value = "ALL"; 
             document.getElementById('channelFilter').value = "ALL"; 
+            document.getElementById('nationFilter').value = "ALL"; 
             
             localStorage.removeItem('gozcu_session_id');
             localStorage.removeItem('gozcu_session_role');
@@ -1073,6 +1081,7 @@
             const filterValue = document.getElementById('statusFilter').value; 
             const baseServerValue = document.getElementById('baseServerFilter').value; 
             const channelValue = document.getElementById('channelFilter').value; 
+            const nationValue = document.getElementById('nationFilter').value; 
             
             container.innerHTML = ""; 
             
@@ -1091,7 +1100,7 @@
                 return a.Account.localeCompare(b.Account, undefined, {numeric: true, sensitivity: 'base'});
             });
 
-            // Tablo görünümü için HTML başlangıcı (INV kaldırıldı, Materyal eklendi)
+            // Tablo görünümü için HTML başlangıcı
             let tableHTML = `
                 <table class="w-full text-left text-sm text-slate-300 min-w-max border-collapse">
                     <thead class="text-xs uppercase bg-slate-800 text-slate-400 sticky top-0 border-b-2 border-slate-600 z-10">
@@ -1130,7 +1139,7 @@
                 }
 
                 if (searchTerm) {
-                    const searchStr = `${bot.Account} ${bot.Server} ${bot._owner} ${bot.WebCharName} ${bot.WebTarget} ${bot.WebPremium}`.toLowerCase();
+                    const searchStr = `${bot.Account} ${bot.Server} ${bot._owner} ${bot.WebCharName} ${bot.WebTarget} ${bot.WebPremium} ${bot.WebNation}`.toLowerCase();
                     if (!searchStr.includes(searchTerm)) return; 
                 }
 
@@ -1152,6 +1161,11 @@
                 if (baseServerValue !== "ALL" && botBaseServer !== baseServerValue) return;
                 if (channelValue !== "ALL" && botChannel !== channelValue) return;
 
+                if (nationValue !== "ALL") {
+                    let currentNation = bot.WebNation || "";
+                    if (!currentNation.toLowerCase().includes(nationValue.toLowerCase())) return;
+                }
+
                 filteredBotsList.push({ owner: bot._owner, key: bot._key, account: bot.Account, server: bot.Server, status: statusCode });
                 filteredCount++;
                 
@@ -1162,17 +1176,26 @@
                 const webCoinStr = bot.WebCoin || "0";
                 const webTarget = bot.WebTarget || "-";
                 
-                // Premium Metnini Temizleme (örn: "DISC_PREMIUM (25 Gün)" -> "25 Gün")
+                // Irk (Nation) HTML'i Oluşturma
+                let nationBadge = "";
+                if (bot.WebNation) {
+                    if (bot.WebNation.toLowerCase().includes("karus")) {
+                        nationBadge = `<span class="text-red-400 font-bold text-[10px] ml-1" title="Karus">🔴</span>`;
+                    } else if (bot.WebNation.toLowerCase().includes("morad")) {
+                        nationBadge = `<span class="text-blue-400 font-bold text-[10px] ml-1" title="El Morad">🔵</span>`;
+                    }
+                }
+
+                // Premium Metnini Temizleme
                 let webPremium = bot.WebPremium || "-";
                 if (webPremium.includes('(') && webPremium.includes(')')) {
                     const match = webPremium.match(/\(([^)]+)\)/);
                     if (match) webPremium = match[1];
                 }
 
-                // --- MATERYAL GÖRÜNÜMÜ OLUŞTURMA ---
+                // Materyal Görünümü Oluşturma
                 const webMaterial = bot.WebMaterial || "";
                 let materialHTML = `<span class="text-slate-500">-</span>`;
-                
                 if (webMaterial && webMaterial !== "-") {
                     const mats = webMaterial.split(/\s+/).filter(m => m.trim() !== "");
                     if (mats.length > 0) {
@@ -1188,7 +1211,6 @@
                 let numericCoin = parseInt(webCoinStr.toString().replace(/[^0-9]/g, '')) || 0;
                 totalCoinValue += numericCoin;
 
-                // Grup etiketleri
                 let groupTagsHTML = bot._groupsArray.map(g => `<span class="bg-blue-900/40 border border-blue-700/50 text-blue-300 text-[10px] px-2 py-0.5 rounded">${g}</span>`).join(' ');
 
                 if (currentViewMode === 'grid') {
@@ -1218,13 +1240,11 @@
                                 <span class="px-2 py-1 rounded text-[11px] font-bold whitespace-nowrap bg-slate-900 text-slate-300 border border-slate-700 shadow-inner">${bot.Server || 'SERVER YOK'}</span>
                             </div>
                             
-                            <!-- TEMEL VERİLER -->
                             <div class="flex justify-between items-center mb-2 bg-slate-900/50 p-2 rounded border border-slate-700/50 shadow-inner">
-                                <div class="text-[11px] font-bold text-purple-300 truncate pr-2"><i class="fa-solid fa-user-ninja mr-1 opacity-70"></i>${webCharName}</div>
+                                <div class="text-[11px] font-bold text-purple-300 truncate pr-2"><i class="fa-solid fa-user-ninja mr-1 opacity-70"></i>${webCharName} ${nationBadge}</div>
                                 <div class="text-[12px] font-extrabold text-yellow-400 whitespace-nowrap"><i class="fa-solid fa-coins mr-1 opacity-80"></i>${webCoinStr}</div>
                             </div>
                             
-                            <!-- YENİ DETAY VERİLERİ (INV KALDIRILDI MATERYAL GELDİ) -->
                             <div class="flex justify-between items-center mb-3 bg-slate-900/30 p-2 rounded text-[10px] text-slate-300">
                                 <div class="truncate pr-2" title="Hedef (Target)"><i class="fa-solid fa-crosshairs text-red-400 mr-1"></i>${webTarget}</div>
                                 <div class="flex gap-1" title="Materyaller">${materialHTML}</div>
@@ -1255,7 +1275,7 @@
                                 </div>
                                 <div class="text-[10px] text-slate-400 mt-1">${bot.Server || '-'}</div>
                             </td>
-                            <td class="px-4 py-2 font-bold text-purple-300 text-xs">${webCharName}</td>
+                            <td class="px-4 py-2 font-bold text-purple-300 text-xs">${webCharName} ${nationBadge}</td>
                             <td class="px-4 py-2">
                                 <div class="text-xs font-bold" style="color: ${displayColor}" title="${displayStatus}"><i class="fa-solid ${icon} mr-1"></i>${statusCode}</div>
                                 <div class="text-[10px] text-slate-500">${isDead && bot.LastUpdate ? Math.floor(diffMinutes) + ' Dk' : (bot.LastUpdate ? bot.LastUpdate.split(' ')[1] : '--:--')}</div>
