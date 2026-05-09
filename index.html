@@ -290,6 +290,10 @@
                         </h3>
                         <div class="space-y-3">
                             <div class="relative">
+                                <i class="fa-solid fa-link absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500"></i>
+                                <input type="url" id="bridgeUrl" placeholder="Site URL (Örn: https://knfbx.com)" class="w-full bg-slate-900 border border-slate-600 text-white rounded-lg py-2.5 pl-10 pr-3 outline-none focus:border-amber-500 transition-colors">
+                            </div>
+                            <div class="relative">
                                 <i class="fa-solid fa-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500"></i>
                                 <input type="email" id="bridgeEmail" placeholder="Site E-Mail Adresi" class="w-full bg-slate-900 border border-slate-600 text-white rounded-lg py-2.5 pl-10 pr-3 outline-none focus:border-amber-500 transition-colors">
                             </div>
@@ -806,6 +810,7 @@
                 if (res.ok) config = await res.json() || {};
 
                 // Inputları doldur
+                document.getElementById('bridgeUrl').value = config.targetUrl || "https://knfbx.com";
                 document.getElementById('bridgeEmail').value = config.email || "";
                 document.getElementById('bridgePass').value = config.password || "";
                 
@@ -871,11 +876,12 @@
 
         async function saveDataBridgeSettings() {
             const btn = document.getElementById('saveBridgeBtn');
+            const targetUrl = document.getElementById('bridgeUrl').value.trim();
             const email = document.getElementById('bridgeEmail').value.trim();
             const pass = document.getElementById('bridgePass').value.trim();
 
-            if (!email || !pass) {
-                alert("Site Email ve Şifresi boş bırakılamaz!");
+            if (!targetUrl || !email || !pass) {
+                alert("Site URL, Email ve Şifresi boş bırakılamaz!");
                 return;
             }
 
@@ -887,6 +893,7 @@
 
             // Tam yapılandırma paketi
             const configPayload = {
+                targetUrl: targetUrl,
                 email: email,
                 password: pass,
                 fetchCoin: document.getElementById('fetch_Coin').checked,
