@@ -157,6 +157,11 @@
                     <i class="fa-solid fa-users-gear mb-1"></i> Admin
                 </button>
 
+                <!-- YENİ: MANUEL VERİ ÇEKME BUTONU -->
+                <button id="manualFetchBtn" onclick="manualTriggerWebData()" class="bg-sky-600 hover:bg-sky-500 px-4 py-2 rounded-lg transition-colors text-sm flex flex-col items-center justify-center font-bold text-white shadow-lg shadow-sky-900/50 h-[50px]">
+                    <i class="fa-solid fa-cloud-arrow-down mb-1"></i> Web'den Çek
+                </button>
+
                 <!-- YENİ: VERİ KÖPRÜSÜ (ENTEGRASYON) BUTONU -->
                 <button onclick="openDataBridgeModal()" class="bg-amber-600 hover:bg-amber-500 px-4 py-2 rounded-lg transition-colors text-sm flex flex-col items-center justify-center font-bold text-white shadow-lg shadow-amber-900/50 h-[50px]">
                     <i class="fa-solid fa-bridge-water mb-1"></i> Veri Köprüsü
@@ -713,6 +718,9 @@
 
             fetchBotData();
             refreshInterval = setInterval(fetchBotData, 5000);
+            
+            // YENİ: Otomatik Veri Çekme (Panele ilk girildiğinde 3 kez arka arkaya tetikler)
+            autoTriggerWebData();
         }
 
         function logout() {
@@ -732,6 +740,58 @@
             currentUserRole = "user";
             selectedBotKeys.clear();
         }
+
+        // ================= YENİ: MANUEL VE OTOMATİK VERİ ÇEKME TETİKLEYİCİSİ =================
+        async function triggerDataBridge() {
+            if (!currentMusteriID) return false;
+            
+            // Admin başka bir müşteriye bakıyorsa onun verisini çekelim, yoksa kendi verimizi
+            const targetId = (currentUserRole === "admin" && document.getElementById('adminViewFilter').value !== "ALL") 
+                                ? document.getElementById('adminViewFilter').value 
+                                : currentMusteriID;
+
+            try {
+                // VDS API mize /api/tetikle/MUSTERI_ID adresiyle istek atıyoruz
+                const triggerUrl = `${FIREBASE_URL}api/tetikle/${targetId}?key=${PANEL_API_KEY}`;
+                const response = await fetch(triggerUrl);
+                const data = await response.json();
+                return data.success;
+            } catch (error) {
+                console.error("VDS Tetikleme Hatası:", error);
+                return false;
+            }
+        }
+
+        async function manualTriggerWebData() {
+            const btn = document.getElementById('manualFetchBtn');
+            if(btn) {
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mb-1"></i> Çekiliyor...';
+                btn.disabled = true;
+            }
+            
+            const success = await triggerDataBridge();
+            
+            if(btn) {
+                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-down mb-1"></i> Web\'den Çek';
+                btn.disabled = false;
+            }
+            
+            if(success) {
+                // Başarılı olursa ekranı hemen yenile
+                fetchBotData();
+                alert("✅ Web sitesinden veriler başarıyla çekildi ve güncellendi!");
+            } else {
+                alert("❌ Veri çekme işlemi başarısız oldu. Lütfen VDS Sunucusunun (Node.js) ve Köprü Ayarlarının aktif olduğundan emin olun.");
+            }
+        }
+
+        function autoTriggerWebData() {
+            console.log("Otomatik veri çekme başlatıldı (Arka arkaya 3 kere tetiklenecek)");
+            triggerDataBridge(); // 1. Çekim (0. Saniye)
+            setTimeout(() => triggerDataBridge(), 5000);  // 2. Çekim (5 Saniye sonra)
+            setTimeout(() => triggerDataBridge(), 10000); // 3. Çekim (10 Saniye sonra)
+        }
+        // ======================================================================================
 
         // ================= YENİ: VERİ KÖPRÜSÜ (ENTEGRASYON) FONKSİYONLARI =================
         async function openDataBridgeModal() {
