@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KNIGHT GÖZCÜ - Canlı Kontrol Merkezi</title>
-
+    
     <!-- ÜST DÜZEY GÜVENLİK PROTOKOLÜ -->
     <script>
         const urlParams = new URLSearchParams(window.location.search);
+        
         const isLocalOrPreview = window.location.hostname.includes('usercontent.goog') || 
                                  window.location.hostname === 'localhost' || 
                                  window.location.hostname === '127.0.0.1' || 
@@ -31,175 +32,175 @@
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome -->
+    <!-- Font Awesome (İkon Kütüphanesi) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+    
     <style>
-        body { background-color: #0f172a; color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
-        .bot-card { transition: all 0.3s ease; }
-        .bot-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.5); }
+        body { background-color: #0b0f19; color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .glass-panel { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+        .bot-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .bot-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.7); }
         .pulse-green { animation: pulseGreen 2s infinite; }
         .pulse-red { animation: pulseRed 2s infinite; }
-
+        
         @keyframes pulseGreen {
-            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6); }
             70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
             100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
         }
         @keyframes pulseRed {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
             70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
             100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
 
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        /* Özel Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0b0f19; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-        .ai-text-gradient {
-            background: linear-gradient(to right, #a855f7, #3b82f6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .ai-content b { color: #93c5fd; }
-        .ai-content ul { list-style-type: disc; padding-left: 1.5rem; margin-top: 0.5rem; margin-bottom: 0.5rem; }
-        .ai-content li { margin-bottom: 0.25rem; }
-
-        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .table-row-hover:hover { background-color: rgba(51, 65, 85, 0.8); }
-
+        /* Checkbox Custom */
         .custom-checkbox { position: relative; cursor: pointer; }
         .custom-checkbox:checked { background-color: #3b82f6; border-color: #3b82f6; }
         .custom-checkbox:checked::after {
-            content: ''; position: absolute; left: 32%; top: 15%; width: 30%; height: 55%;
+            content: ''; position: absolute; left: 35%; top: 15%; width: 30%; height: 55%;
             border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg);
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col overflow-x-hidden">
+<body class="min-h-screen flex flex-col justify-between">
 
     <!-- 1. GİRİŞ EKRANI -->
-    <div id="loginScreen" class="flex-grow flex items-center justify-center p-4 z-10">
-        <div class="glass-panel p-8 rounded-2xl shadow-2xl max-w-md w-full text-center border border-slate-700">
-            <div class="mb-6 inline-block p-4 rounded-full bg-blue-900/50 text-blue-400 shadow-inner">
+    <div id="loginScreen" class="flex-grow flex flex-col items-center justify-center p-4 z-10">
+        <!-- Giriş Ekranı Canlı Duyuru Alanı -->
+        <div id="loginDuyuruBanner" class="hidden max-w-md w-full mb-4 bg-gradient-to-r from-red-600/90 to-amber-600/90 text-white py-3 px-4 rounded-xl shadow-lg border border-red-500/20 flex items-center justify-between animate-pulse">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-bullhorn text-lg"></i>
+                <span id="loginDuyuruText" class="font-bold text-xs leading-relaxed"></span>
+            </div>
+            <button onclick="closeDuyuru()" class="hover:text-red-200 ml-2 transition-colors shrink-0">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <div class="glass-panel p-8 rounded-2xl shadow-2xl max-w-md w-full text-center border border-slate-800">
+            <div class="mb-6 inline-block p-4 rounded-full bg-blue-950/50 text-blue-400 shadow-inner">
                 <i class="fa-solid fa-satellite-dish text-5xl"></i>
             </div>
-            <h1 class="text-3xl font-bold mb-2 text-white">GÖZCÜ PANEL</h1>
-            <p class="text-slate-400 mb-8 text-sm">Ağa bağlanmak için bilgilerinizi giriniz.</p>
-
+            <h1 class="text-3xl font-black mb-2 text-white tracking-tight">GÖZCÜ PANEL</h1>
+            <p class="text-slate-400 mb-8 text-sm">Ağa güvenli şekilde bağlanmak için bilgilerinizi giriniz.</p>
+            
             <div class="mb-4 relative">
-                <i class="fa-solid fa-user absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                <i class="fa-solid fa-user absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-500"></i>
                 <input type="text" id="musteriIdInput" placeholder="Lisans / Müşteri ID" 
-                       class="w-full pl-10 pr-4 py-3 rounded-lg bg-slate-800 border border-slate-600 focus:border-blue-500 focus:outline-none text-white font-semibold mb-2 uppercase tracking-widest">
+                       class="w-full pl-10 pr-4 py-3 rounded-lg bg-slate-900 border border-slate-700 focus:border-blue-500 focus:outline-none text-white font-semibold mb-2 uppercase tracking-widest transition-colors">
             </div>
 
             <div class="mb-6 relative">
-                <i class="fa-solid fa-lock absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                <i class="fa-solid fa-lock absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-500"></i>
                 <input type="password" id="passwordInput" placeholder="Şifreniz" 
-                       class="w-full pl-10 pr-4 py-3 rounded-lg bg-slate-800 border border-slate-600 focus:border-blue-500 focus:outline-none text-white font-semibold tracking-widest"
+                       class="w-full pl-10 pr-4 py-3 rounded-lg bg-slate-900 border border-slate-700 focus:border-blue-500 focus:outline-none text-white font-semibold tracking-widest transition-colors"
                        onkeypress="if(event.key === 'Enter') connectToPanel()">
             </div>
-
-            <button onclick="connectToPanel()" id="loginBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-lg transition-colors shadow-lg shadow-blue-900/50 flex items-center justify-center">
+            
+            <button onclick="connectToPanel()" id="loginBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 px-4 rounded-lg transition-all shadow-lg shadow-blue-900/40 flex items-center justify-center">
                 <span>SİSTEME GİRİŞ YAP</span> <i class="fa-solid fa-arrow-right ml-2"></i>
             </button>
         </div>
     </div>
 
-    <!-- 2. ANA DASHBOARD EKRANI -->
+    <!-- 2. ANA DASHBOARD EKRANI (Başlangıçta Gizli) -->
     <div id="dashboardScreen" class="hidden flex-col min-h-screen p-4 md:p-8 relative z-10">
-
+        
         <!-- Üst Header & İstatistikler -->
-        <header class="glass-panel rounded-xl p-4 md:p-6 mb-4 flex flex-col lg:flex-row justify-between items-center gap-4 border-b-4 border-blue-500">
+        <header class="glass-panel rounded-2xl p-4 md:p-6 mb-4 flex flex-col lg:flex-row justify-between items-center gap-4 border-b-2 border-blue-500/50">
             <div>
-                <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+                <h1 class="text-2xl font-black text-white flex items-center gap-3 tracking-tight">
                     <i class="fa-solid fa-shield-halved text-blue-400"></i> KNIGHT GÖZCÜ FİLO KOMUTASI
                 </h1>
-                <p class="text-slate-400 text-sm mt-1 flex items-center">
-                    Aktif Hesap: <span id="displayMusteriId" class="font-bold text-blue-300 ml-1">...</span>
-                    <span id="adminBadge" class="hidden ml-2 px-2 py-0.5 bg-red-500/20 text-red-400 border border-red-500/50 rounded text-xs font-bold uppercase">Kurucu Admin</span>
+                <p class="text-slate-400 text-xs mt-1 flex items-center font-medium">
+                    Aktif Hesap: <span id="displayMusteriId" class="font-bold text-blue-400 ml-1">...</span>
+                    <span id="adminBadge" class="hidden ml-2 px-2 py-0.5 bg-red-500/20 text-red-400 border border-red-500/30 rounded text-[10px] font-black uppercase">Kurucu Admin</span>
                 </p>
             </div>
-
-            <div class="flex flex-wrap gap-2 md:gap-4 justify-center items-center">
+            
+            <div class="flex flex-wrap gap-2 md:gap-3 justify-center items-center">
                 <!-- Stat Kutuları -->
-                <div class="bg-slate-800 px-4 py-2 rounded-lg border border-slate-700 text-center">
-                    <div class="text-xs text-slate-400 uppercase tracking-wider" title="Ekranda Görünen / Toplam VDS">Görünen / Toplam</div>
-                    <div id="statTotal" class="text-2xl font-bold text-white">0</div>
+                <div class="bg-slate-900/60 px-4 py-2 rounded-xl border border-slate-800 text-center min-w-[90px]">
+                    <div class="text-[10px] text-slate-500 uppercase font-bold tracking-wider" title="Görünen / Toplam VDS">Görünen / Toplam</div>
+                    <div id="statTotal" class="text-xl font-black text-white">0</div>
                 </div>
-
-                <div class="bg-yellow-900/30 px-4 py-2 rounded-lg border border-yellow-800/50 text-center">
-                    <div class="text-xs text-yellow-400 uppercase tracking-wider" title="Ekranda filtrelenmiş olan çarların toplam coini"><i class="fa-solid fa-coins mr-1"></i> Toplam Coin</div>
-                    <div id="statTotalCoin" class="text-2xl font-bold text-yellow-400">0</div>
+                <div class="bg-yellow-900/20 px-4 py-2 rounded-xl border border-yellow-500/20 text-center min-w-[90px]">
+                    <div class="text-[10px] text-yellow-500/80 uppercase font-bold tracking-wider"><i class="fa-solid fa-coins mr-1"></i> Toplam Coin</div>
+                    <div id="statTotalCoin" class="text-xl font-black text-yellow-400">0</div>
                 </div>
-
-                <div class="bg-green-900/30 px-4 py-2 rounded-lg border border-green-800/50 text-center pulse-green">
-                    <div class="text-xs text-green-400 uppercase tracking-wider">Aktif/Oyunda</div>
-                    <div id="statOnline" class="text-2xl font-bold text-green-400">0</div>
+                <div class="bg-green-950/40 px-4 py-2 rounded-xl border border-green-500/20 text-center min-w-[90px] pulse-green">
+                    <div class="text-[10px] text-green-400 uppercase font-bold tracking-wider">Aktif/Oyunda</div>
+                    <div id="statOnline" class="text-xl font-black text-green-400">0</div>
                 </div>
-                <div class="bg-red-900/30 px-4 py-2 rounded-lg border border-red-800/50 text-center pulse-red">
-                    <div class="text-xs text-red-400 uppercase tracking-wider">Hata/Kritik</div>
-                    <div id="statError" class="text-2xl font-bold text-red-400">0</div>
+                <div class="bg-red-950/40 px-4 py-2 rounded-xl border border-red-500/20 text-center min-w-[90px] pulse-red">
+                    <div class="text-[10px] text-red-400 uppercase font-bold tracking-wider">Hata/Kritik</div>
+                    <div id="statError" class="text-xl font-black text-red-400">0</div>
                 </div>
-
+                
                 <!-- Admin Dinamik Kullanıcı Filtresi -->
-                <select id="adminViewFilter" onchange="fetchBotData()" class="hidden bg-purple-900/30 hover:bg-purple-800/40 border border-purple-500 text-purple-300 rounded-lg px-3 py-2 outline-none focus:border-purple-400 cursor-pointer font-bold text-sm shadow-lg shadow-purple-900/20 transition-colors h-[50px]">
+                <select id="adminViewFilter" onchange="fetchBotData()" class="hidden bg-purple-950/40 hover:bg-purple-900/30 border border-purple-500/40 text-purple-300 rounded-xl px-3 py-2 outline-none focus:border-purple-400 cursor-pointer font-bold text-sm shadow-md transition-colors h-[48px]">
                     <option value="ALL">🌐 Tümü</option>
                 </select>
 
                 <!-- Admin Butonu -->
-                <button id="adminPanelBtn" onclick="openAdminModal()" class="hidden bg-purple-600 hover:bg-purple-500 px-4 py-2 rounded-lg transition-colors text-sm flex flex-col items-center justify-center font-bold text-white shadow-lg shadow-purple-900/50 h-[50px]">
-                    <i class="fa-solid fa-users-gear mb-1"></i> Admin
+                <button id="adminPanelBtn" onclick="openAdminModal()" class="hidden bg-purple-600 hover:bg-purple-500 px-4 py-2 rounded-xl transition-all text-xs flex flex-col items-center justify-center font-bold text-white shadow-md shadow-purple-950/30 h-[48px] w-16">
+                    <i class="fa-solid fa-users-gear mb-0.5"></i> Admin
                 </button>
 
-                <!-- MANUEL VERİ ÇEKME BUTONU -->
-                <button id="manualFetchBtn" onclick="manualTriggerWebData()" class="bg-sky-600 hover:bg-sky-500 px-4 py-2 rounded-lg transition-colors text-sm flex flex-col items-center justify-center font-bold text-white shadow-lg shadow-sky-900/50 h-[50px]">
-                    <i class="fa-solid fa-cloud-arrow-down mb-1"></i> Web'den Çek
-                </button>
-
-                <!-- VERİ KÖPRÜSÜ (ENTEGRASYON) BUTONU -->
-                <button onclick="openDataBridgeModal()" class="bg-amber-600 hover:bg-amber-500 px-4 py-2 rounded-lg transition-colors text-sm flex flex-col items-center justify-center font-bold text-white shadow-lg shadow-amber-900/50 h-[50px]">
-                    <i class="fa-solid fa-bridge-water mb-1"></i> Veri Köprüsü
-                </button>
-
-                <!-- Discord Bildirim Ayarları Butonu -->
-                <button onclick="openDiscordSettingsModal()" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg transition-colors text-sm flex flex-col items-center justify-center font-bold text-white shadow-lg shadow-indigo-900/50 h-[50px]">
-                    <i class="fa-brands fa-discord mb-1"></i> Discord
-                </button>
-
-                <button onclick="logout()" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg transition-colors text-sm flex flex-col items-center justify-center h-[50px]">
-                    <i class="fa-solid fa-power-off text-red-400 mb-1"></i> Çıkış
+                <button onclick="logout()" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-xl transition-all text-xs flex flex-col items-center justify-center h-[48px] w-16">
+                    <i class="fa-solid fa-power-off text-red-400 mb-0.5"></i> Çıkış
                 </button>
             </div>
         </header>
 
-        <!-- GRUPLAR SEKMESİ (PILLS) -->
-        <div class="mb-4 flex gap-2 overflow-x-auto scrollbar-hide items-center bg-slate-800/50 p-3 rounded-lg border border-slate-700" id="groupFilterPills">
+        <!-- Dashboard Canlı Duyuru Alanı -->
+        <div id="dashboardDuyuruBanner" class="hidden w-full mb-4 bg-gradient-to-r from-red-600/90 to-amber-600/90 text-white py-3.5 px-4 rounded-xl shadow-lg border border-red-500/20 flex items-center justify-between animate-pulse shrink-0">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-bullhorn text-xl"></i>
+                <span id="dashboardDuyuruText" class="font-bold text-sm leading-relaxed"></span>
+            </div>
+            <button onclick="closeDuyuru()" class="hover:text-red-200 transition-colors shrink-0">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <!-- 3 KATMANLI FILTRE VE KONTROL ALANI (UI/UX YENIDEN TASARLANDI) -->
+        
+        <!-- KATMAN 1: SEGMENTASYON (Grup Yönetimi ve Sekmeler) -->
+        <div class="mb-3 flex gap-2 overflow-x-auto scrollbar-hide items-center bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/80" id="groupFilterPills">
             <!-- JS ile Gruplar Buraya Gelecek -->
         </div>
 
-        <!-- Arama, Filtreleme ve Toplu İşlem Menüsü -->
-        <div class="mb-6 flex flex-wrap gap-4 items-center justify-between bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-            <div class="flex flex-wrap gap-4 items-center flex-grow">
-                <!-- Select All (Tümünü Seç) -->
-                <label class="flex items-center cursor-pointer bg-slate-800 border border-slate-600 px-4 py-3 rounded-lg hover:bg-slate-700 transition relative">
-                    <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)" class="custom-checkbox w-5 h-5 rounded appearance-none bg-slate-900 border border-slate-600 outline-none cursor-pointer">
-                    <span class="ml-2 text-sm font-bold text-white select-none whitespace-nowrap">Seç <span id="selectedCount" class="text-blue-400 text-xs ml-1">(0)</span></span>
+        <!-- KATMAN 2: UNIFORM BAR (Arama & Akıllı Filtreleme) -->
+        <div class="mb-3 grid grid-cols-1 lg:grid-cols-12 gap-2 bg-slate-900/60 p-3 rounded-xl border border-slate-800/80 items-center">
+            <!-- Hızlı Seçim (Checkbox) -->
+            <div class="lg:col-span-1 flex justify-center">
+                <label class="flex items-center justify-center cursor-pointer bg-slate-950/60 border border-slate-800 rounded-lg hover:bg-slate-800 transition duration-200 h-12 w-full px-3 select-none">
+                    <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)" class="custom-checkbox w-5 h-5 rounded appearance-none bg-slate-900 border border-slate-700 outline-none cursor-pointer">
+                    <span class="ml-2 text-xs font-bold text-white whitespace-nowrap">Seç <span id="selectedCount" class="text-blue-400 text-[10px] font-black ml-0.5">(0)</span></span>
                 </label>
+            </div>
 
-                <div class="relative w-full max-w-sm">
-                    <i class="fa-solid fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
-                    <input type="text" id="searchInput" placeholder="Ara (Örn: bos1, Zero-6, DIYON)" 
-                           class="w-full pl-10 pr-4 py-3 rounded-lg bg-slate-800 border border-slate-600 focus:border-blue-500 text-white outline-none shadow-inner"
-                           onkeyup="renderBots()">
-                </div>
+            <!-- Akıllı Arama Kutusu -->
+            <div class="lg:col-span-3 relative">
+                <i class="fa-solid fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-500"></i>
+                <input type="text" id="searchInput" placeholder="Karakter veya PC adıyla ara (Örn: DIYON-1)" 
+                       class="w-full pl-10 pr-4 rounded-lg bg-slate-950/60 border border-slate-800 focus:border-blue-500 text-white outline-none text-sm transition-colors h-12"
+                       onkeyup="renderBots()">
+            </div>
 
-                <select id="statusFilter" class="bg-slate-800 border border-slate-600 text-white rounded-lg px-4 py-3 outline-none focus:border-blue-500 shadow-inner cursor-pointer font-medium" onchange="renderBots()">
+            <!-- 4 Eşit Genişlikte Dropdown Filtresi -->
+            <div class="lg:col-span-2">
+                <select id="statusFilter" class="w-full bg-slate-950/60 border border-slate-800 text-white rounded-lg px-3 outline-none focus:border-blue-500 cursor-pointer font-semibold text-xs h-12" onchange="renderBots()">
                     <option value="ALL">📋 Tüm Durumlar</option>
                     <option value="ONLINE">🟢 Sadece Oyunda Olanlar</option>
                     <option value="WAITING">🟡 Sadece Beklemede/Başlatıcıda</option>
@@ -207,306 +208,239 @@
                     <option value="ERROR">🔴 Hata Verenler (OTP/NPC)</option>
                     <option value="OFFLINE">⚫ Bağlantısı Kopanlar</option>
                 </select>
-
-                <!-- Irk Filtresi -->
-                <select id="nationFilter" class="bg-slate-800 border border-slate-600 text-white rounded-lg px-4 py-3 outline-none focus:border-blue-500 shadow-inner cursor-pointer font-medium" onchange="renderBots()">
-                    <option value="ALL">⚔️ Tüm Irklar</option>
-                    <option value="Karus">🔴 Sadece Karus</option>
-                    <option value="ElMorad">🔵 Sadece El Morad</option>
-                </select>
-
-                <!-- Ana Sunucu ve Kanal Filtreleri -->
-                <select id="baseServerFilter" class="bg-slate-800 border border-slate-600 text-white rounded-lg px-4 py-3 outline-none focus:border-blue-500 shadow-inner cursor-pointer font-medium" onchange="renderBots()">
-                    <option value="ALL">🌍 Tüm Sunucular</option>
-                </select>
-
-                <select id="channelFilter" class="bg-slate-800 border border-slate-600 text-white rounded-lg px-4 py-3 outline-none focus:border-blue-500 shadow-inner cursor-pointer font-medium" onchange="renderBots()">
-                    <option value="ALL">🔢 Tüm Kanallar</option>
-                </select>
-
-                <div class="flex gap-2">
-                    <!-- GÖRÜNÜM DEĞİŞTİRME BUTONU -->
-                    <button onclick="toggleViewMode()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-3 rounded-lg font-bold shadow-lg transition-colors flex items-center justify-center border border-blue-500" title="Tablo / Kutu Görünümü Değiştir">
-                        <i id="viewModeIcon" class="fa-solid fa-list text-xl"></i>
-                    </button>
-
-                    <button onclick="clearOfflineBots()" class="bg-slate-800 hover:bg-red-900/80 text-slate-400 hover:text-red-400 px-4 py-3 rounded-lg font-bold shadow-lg transition-colors flex items-center whitespace-nowrap border border-slate-600 hover:border-red-500" title="Bağlantısı kopan tüm çarları siler">
-                        <i class="fa-solid fa-broom mr-2"></i> Kopanları Sil
-                    </button>
-
-                    <button onclick="openMassGroupModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-3 rounded-lg font-bold shadow-lg shadow-emerald-900/50 transition-colors flex items-center whitespace-nowrap">
-                        <i class="fa-solid fa-tags mr-2 text-xl"></i> Toplu Grup
-                    </button>
-
-                    <button onclick="openMassCommandModal()" class="bg-red-600 hover:bg-red-500 text-white px-5 py-3 rounded-lg font-bold shadow-lg shadow-red-900/50 transition-colors flex items-center whitespace-nowrap">
-                        <i class="fa-solid fa-layer-group mr-2 text-xl"></i> Toplu Komut
-                    </button>
-
-                    <button onclick="openAiAnalysisModal()" class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white px-5 py-3 rounded-lg font-bold shadow-lg shadow-purple-900/50 transition-colors flex items-center whitespace-nowrap">
-                        ✨ Akıllı Analiz
-                    </button>
-
-                    <button onclick="openNewGroupModal()" class="bg-slate-700 hover:bg-slate-600 text-white px-5 py-3 rounded-lg font-bold shadow-lg transition-colors flex items-center whitespace-nowrap border border-slate-600">
-                        <i class="fa-solid fa-folder-plus mr-2"></i> Yeni Grup Ekle
-                    </button>
-                </div>
             </div>
 
-            <div class="text-sm text-slate-400 flex items-center font-semibold bg-slate-800 px-4 py-2 rounded-lg border border-slate-700">
-                <i class="fa-solid fa-rotate mr-2" id="refreshIcon"></i> Senkronizasyon: <span id="lastRefreshTime" class="text-green-400 ml-2 font-mono">Şimdi</span>
+            <div class="lg:col-span-2">
+                <select id="nationFilter" class="w-full bg-slate-950/60 border border-slate-800 text-white rounded-lg px-3 outline-none focus:border-blue-500 cursor-pointer font-semibold text-xs h-12" onchange="renderBots()">
+                    <option value="ALL">⚔️ Tüm Irklar</option>
+                    <option value="KARUS">🔴 Sadece Karus</option>
+                    <option value="HUMAN">🔵 Sadece Human / El Morad</option>
+                </select>
+            </div>
+
+            <div class="lg:col-span-2">
+                <select id="baseServerFilter" class="w-full bg-slate-950/60 border border-slate-800 text-white rounded-lg px-3 outline-none focus:border-blue-500 cursor-pointer font-semibold text-xs h-12" onchange="renderBots()">
+                    <option value="ALL">🌍 Tüm Sunucular</option>
+                </select>
+            </div>
+
+            <div class="lg:col-span-2">
+                <select id="channelFilter" class="w-full bg-slate-950/60 border border-slate-800 text-white rounded-lg px-3 outline-none focus:border-blue-500 cursor-pointer font-semibold text-xs h-12" onchange="renderBots()">
+                    <option value="ALL">🔢 Tüm Kanallar</option>
+                </select>
             </div>
         </div>
 
-        <!-- Botların Dizileceği Kapsayıcı -->
+        <!-- KATMAN 3: ACTION DOCK (Aksiyon & Kontrol Köprüsü) -->
+        <div class="mb-5 flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-900/30 p-3 rounded-xl border border-slate-800/60">
+            <!-- Sol Kısım: Görünüm ve Canlı Sync Saati -->
+            <div class="flex items-center gap-3">
+                <button onclick="toggleViewMode()" class="bg-slate-850 hover:bg-slate-800 text-slate-300 hover:text-white px-4 py-2.5 rounded-lg font-bold text-xs shadow-md transition-colors border border-slate-800 flex items-center justify-center gap-2" title="Görünümü Değiştir">
+                    <i id="viewModeIcon" class="fa-solid fa-list"></i> <span>Görünüm</span>
+                </button>
+                <div class="bg-slate-950/60 border border-slate-800 px-4 py-2.5 rounded-lg text-xs font-bold text-slate-400 flex items-center gap-2 shadow-inner">
+                    <i class="fa-solid fa-rotate text-emerald-500" id="refreshIcon"></i>
+                    <span>Sync: <span id="lastRefreshTime" class="text-emerald-400 font-mono">Hesaplanıyor</span></span>
+                </div>
+            </div>
+
+            <!-- Sağ Kısım: Görev Odaklı Buton Grubu -->
+            <div class="flex flex-wrap gap-2 justify-end">
+                <button onclick="clearOfflineBots()" class="bg-slate-850 hover:bg-red-950/40 border border-slate-800 hover:border-red-500/40 text-slate-400 hover:text-red-400 px-4 py-2.5 rounded-lg font-bold text-xs transition-colors flex items-center gap-1.5 shadow" title="Bağlantısı kopan eski kayıtları veritabanından kalıcı olarak siler">
+                    <i class="fa-solid fa-broom text-xs"></i> Kopanları Sil
+                </button>
+                
+                <button onclick="openMassGroupModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-lg font-bold text-xs shadow-md shadow-emerald-900/30 transition-all flex items-center gap-1.5 border border-emerald-500/30">
+                    <i class="fa-solid fa-tags text-xs"></i> Toplu Grup
+                </button>
+                
+                <button onclick="openMassCommandModal()" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2.5 rounded-lg font-bold text-xs shadow-md shadow-red-900/30 transition-all flex items-center gap-1.5 border border-red-500/30">
+                    <i class="fa-solid fa-layer-group text-xs"></i> Toplu Komut
+                </button>
+            </div>
+        </div>
+
+        <!-- Botların Listeleneceği Bölüm -->
         <div id="botsContainer" class="pb-10 overflow-x-auto"></div>
     </div>
 
     <!-- ================= MODALLAR ================= -->
 
-    <!-- VERİ KÖPRÜSÜ (DATA BRIDGE) MODALI -->
-    <div id="dataBridgeModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="glass-panel p-6 rounded-2xl max-w-4xl w-full border border-amber-500 shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
-            <div class="absolute top-0 left-0 w-full h-1 bg-amber-500"></div>
-            
-            <div class="flex justify-between items-center mb-6 shrink-0 border-b border-slate-700/50 pb-4">
-                <div>
-                    <h2 class="text-2xl font-bold text-white flex items-center">
-                        <i class="fa-solid fa-bridge-water text-amber-400 mr-3"></i> Veri Köprüsü & Senkronizasyon
-                    </h2>
-                    <p class="text-slate-400 text-sm mt-1">Hedef site ile botlarınız arasındaki veri aktarımını buradan detaylı yapılandırabilirsiniz.</p>
-                </div>
-                <button onclick="closeDataBridgeModal()" class="text-slate-400 hover:text-red-400 transition-colors">
-                    <i class="fa-solid fa-xmark text-2xl"></i>
-                </button>
-            </div>
-            
-            <div class="flex flex-col md:flex-row gap-6 overflow-hidden flex-grow">
-                <!-- Sol Taraf: Ayarlar ve Veri Tipleri -->
-                <div class="w-full md:w-5/12 flex flex-col gap-4 overflow-y-auto pr-2 scrollbar-hide">
-                    
-                    <div class="bg-slate-800/80 p-5 rounded-xl border border-slate-700">
-                        <h3 class="text-amber-400 font-bold text-sm mb-4 uppercase tracking-wider flex items-center">
-                            <i class="fa-solid fa-globe mr-2"></i> Hedef Site Kimliği
-                        </h3>
-                        <div class="space-y-3">
-                            <div class="relative">
-                                <i class="fa-solid fa-link absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500"></i>
-                                <input type="url" id="bridgeUrl" placeholder="Site URL (Örn: https://knfbx.com)" class="w-full bg-slate-900 border border-slate-600 text-white rounded-lg py-2.5 pl-10 pr-3 outline-none focus:border-amber-500 transition-colors">
-                            </div>
-                            <div class="relative">
-                                <i class="fa-solid fa-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500"></i>
-                                <input type="email" id="bridgeEmail" placeholder="Site E-Mail Adresi" class="w-full bg-slate-900 border border-slate-600 text-white rounded-lg py-2.5 pl-10 pr-3 outline-none focus:border-amber-500 transition-colors">
-                            </div>
-                            <div class="relative">
-                                <i class="fa-solid fa-key absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500"></i>
-                                <input type="password" id="bridgePass" placeholder="Site Şifresi" class="w-full bg-slate-900 border border-slate-600 text-white rounded-lg py-2.5 pl-10 pr-3 outline-none focus:border-amber-500 tracking-widest transition-colors">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-slate-800/80 p-5 rounded-xl border border-slate-700 flex-grow">
-                        <h3 class="text-amber-400 font-bold text-sm mb-2 uppercase tracking-wider flex items-center">
-                            <i class="fa-solid fa-filter mr-2"></i> Çekilecek Veriler
-                        </h3>
-                        <p class="text-[11px] text-slate-400 mb-4 leading-relaxed">
-                            Arka plan sistemi <b>sadece</b> aşağıda işaretlediğiniz verileri siteden çeker. İstemediğiniz verilerin tikini kaldırabilirsiniz.
-                        </p>
-                        <div class="space-y-2.5">
-                            <label class="flex items-center cursor-pointer hover:bg-slate-700/50 p-2 rounded-lg transition-colors border border-transparent hover:border-slate-600">
-                                <input type="checkbox" id="fetch_Coin" class="custom-checkbox w-5 h-5 rounded bg-slate-900 border-slate-600 shadow-inner"> 
-                                <span class="ml-3 text-sm font-semibold text-white flex-grow">💰 Cüzdan / Coin Miktarı</span>
-                            </label>
-                            <label class="flex items-center cursor-pointer hover:bg-slate-700/50 p-2 rounded-lg transition-colors border border-transparent hover:border-slate-600">
-                                <input type="checkbox" id="fetch_Premium" class="custom-checkbox w-5 h-5 rounded bg-slate-900 border-slate-600 shadow-inner"> 
-                                <span class="ml-3 text-sm font-semibold text-white flex-grow">👑 Premium Süresi</span>
-                            </label>
-                            <label class="flex items-center cursor-pointer hover:bg-slate-700/50 p-2 rounded-lg transition-colors border border-transparent hover:border-slate-600">
-                                <input type="checkbox" id="fetch_CharName" class="custom-checkbox w-5 h-5 rounded bg-slate-900 border-slate-600 shadow-inner"> 
-                                <span class="ml-3 text-sm font-semibold text-white flex-grow">👤 Karakter Adı ve Irk Bilgisi</span>
-                            </label>
-                            <label class="flex items-center cursor-pointer hover:bg-slate-700/50 p-2 rounded-lg transition-colors border border-transparent hover:border-slate-600">
-                                <input type="checkbox" id="fetch_Target" class="custom-checkbox w-5 h-5 rounded bg-slate-900 border-slate-600 shadow-inner"> 
-                                <span class="ml-3 text-sm font-semibold text-white flex-grow">🎯 Hedef (Target) Durumu</span>
-                            </label>
-                            <label class="flex items-center cursor-pointer hover:bg-slate-700/50 p-2 rounded-lg transition-colors border border-transparent hover:border-slate-600">
-                                <input type="checkbox" id="fetch_Material" class="custom-checkbox w-5 h-5 rounded bg-slate-900 border-slate-600 shadow-inner"> 
-                                <span class="ml-3 text-sm font-semibold text-white flex-grow">📦 Toplanan Materyaller</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Sağ Taraf: Bot Listesi (Görsel Kuyruk) -->
-                <div class="w-full md:w-7/12 flex flex-col bg-slate-800/80 p-5 rounded-xl border border-slate-700 overflow-hidden">
-                    <div class="flex justify-between items-center mb-2 shrink-0">
-                        <h3 class="text-amber-400 font-bold text-sm uppercase tracking-wider flex items-center">
-                            <i class="fa-solid fa-robot mr-2"></i> Senkronize Edilecek Botlar
-                        </h3>
-                        <button onclick="toggleAllBridgeBots()" class="text-xs bg-slate-700 hover:bg-slate-600 text-white font-bold px-3 py-1.5 rounded shadow transition-colors border border-slate-600">
-                            Tümünü Seç / Kaldır
-                        </button>
-                    </div>
-                    <p class="text-[11px] text-slate-400 mb-4 shrink-0 leading-relaxed border-b border-slate-700 pb-3">
-                        Veri köprüsü, sadece aşağıda listelenmiş ve <b>yanına tik atılmış</b> botlar için arka planda çalışıp veritabanını günceller.
-                    </p>
-                    
-                    <div id="bridgeBotList" class="flex-grow overflow-y-auto pr-2 space-y-2 scrollbar-hide">
-                        <!-- Javascript ile Müşterinin Botları Buraya Sıralanacak -->
-                        <div class="text-center py-8 text-slate-500"><i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2"></i><br>Bot listesi yükleniyor...</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="mt-6 pt-4 border-t border-slate-700 shrink-0">
-                <button onclick="saveDataBridgeSettings()" id="saveBridgeBtn" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-3.5 rounded-xl shadow-[0_0_15px_rgba(217,119,6,0.4)] transition-all flex justify-center items-center text-lg tracking-wide border border-amber-400/50">
-                    <i class="fa-solid fa-floppy-disk mr-2"></i> KÖPRÜ AYARLARINI KAYDET & UYGULA
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- UZAKTAN KOMUT MODALI -->
-    <div id="commandModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="glass-panel p-6 rounded-2xl max-w-md w-full border border-slate-600 shadow-2xl relative overflow-hidden">
+    <!-- DİNAMİK UZAKTAN KOMUT MODALI -->
+    <div id="commandModal" class="hidden fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4 backdrop-blur-md">
+        <div class="glass-panel p-6 rounded-2xl max-w-md w-full border border-slate-800 shadow-2xl relative overflow-hidden">
             <div id="modalHeaderBg" class="absolute top-0 left-0 w-full h-1 bg-blue-500"></div>
 
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold text-white flex items-center">
-                    <i class="fa-solid fa-terminal text-blue-400 mr-2"></i> Uzaktan Komut
+                <h2 class="text-xl font-black text-white flex items-center gap-2">
+                    <i class="fa-solid fa-terminal text-blue-400"></i> Uzaktan Komut İstasyonu
                 </h2>
-                <button onclick="closeCommandModal()" class="text-slate-400 hover:text-red-400 transition-colors">
+                <button onclick="closeCommandModal()" class="text-slate-500 hover:text-red-400 transition-colors">
                     <i class="fa-solid fa-xmark text-2xl"></i>
                 </button>
             </div>
 
-            <div class="bg-slate-800/50 rounded-lg p-3 mb-5 border border-slate-700">
-                <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">Hedef Makine(ler)</p>
-                <p id="modalTargetName" class="font-bold text-white text-lg truncate"></p>
-
-                <div id="massActionWarning" class="hidden mt-2 p-2 bg-indigo-900/40 border border-indigo-700 rounded-lg text-xs text-indigo-200">
-                    <i class="fa-solid fa-circle-info mr-1 text-indigo-400"></i>
-                    <strong>Akıllı Dağıtım:</strong> Bu işlem seçili botlara uygulanır. Her 10 saniyede 4 bot kuyruğa alınır.
+            <!-- Hedef Şerit -->
+            <div class="bg-slate-950/60 rounded-xl p-3.5 mb-5 border border-slate-800">
+                <p class="text-[10px] text-slate-500 uppercase tracking-widest font-black mb-1">Hedef Makine(ler)</p>
+                <p id="modalTargetName" class="font-bold text-white text-base truncate"></p>
+                
+                <div id="massActionWarning" class="hidden mt-2.5 p-2.5 bg-yellow-950/30 border border-yellow-500/20 rounded-lg text-[11px] text-yellow-300 leading-relaxed">
+                    <!-- Dinamik olarak JS tarafında doldurulacaktır -->
                 </div>
             </div>
 
+            <!-- Komut Tipi Seçimi -->
             <div class="mb-4">
-                <label class="block text-slate-300 text-sm font-bold mb-2">Uygulanacak İşlem</label>
-                <select id="commandType" class="w-full bg-slate-800 text-white rounded-lg p-3 border border-slate-600 focus:border-blue-500 outline-none cursor-pointer font-medium" onchange="toggleCommandInputs()">
-                    <option value="START_GAME">🟢 Oyunu Zorla Başlat</option>
-                    <option value="KILL_GAME">🔴 Oyunu Acil Kapat</option>
-                    <option value="RESTART_BOT">🔄 Gözcü'yü Kapatıp Aç (Güncelle)</option>
-                    <option value="PAUSE_BOT">⏸️ Gözcü'yü Pasife Al (Dondur)</option>
-                    <option value="RESUME_BOT">▶️ Gözcü'yü Aktif Et (Başlat)</option>
-                    <option value="SET_STARTUP">⏳ Sıra Bekleme Süresi</option>
-                    <option value="SET_JAIL">⏱️ Hapis Bekleme Süresi</option>
-                    <option value="SET_KARALISTE">💀 Karaliste Bekleme Süresi</option>
-                    <option value="SET_RESTRICT">⏰ Yasaklı Saat Dilimi</option>
-                    <option value="SET_MUSTERI_ID">🔑 Müşteri / Lisans ID Değiştir</option>
+                <label class="block text-slate-400 text-xs font-black uppercase tracking-wider mb-2">Uygulanacak İşlem</label>
+                <select id="commandType" class="w-full bg-slate-900 border border-slate-800 text-white rounded-lg p-3 outline-none focus:border-blue-500 cursor-pointer font-bold text-sm h-12" onchange="toggleCommandInputs()">
+                    <optgroup label="🎮 OYUN İLE İLGİLİ KOMUTLAR">
+                        <option value="START_GAME">🟢 Oyunu Zorla Başlat</option>
+                        <option value="SET_OPEN_TIME">⏰ Oyunu Şu Saatte Aç</option>
+                        <option value="SET_OPEN_DELAY">⏳ Oyunu Şu Dakika Sonra Aç</option>
+                        <option value="KILL_GAME_LOCK">🔒 Oyunu Kapat ve Sistemi Kitle</option>
+                        <option value="KILL_GAME">🛑 Oyunu Kapat (Normal)</option>
+                        <option value="RELOG_GAME">🔄 Oyun Relog At (Kapat - Aç)</option>
+                    </optgroup>
+                    <optgroup label="🛡️ GÖZCÜ İLE İLGİLİ KOMUTLAR">
+                        <option value="RESTART_BOT">📥 Gözcü'yi Güncelle</option>
+                        <option value="PAUSE_BOT">⏸️ Gözcü'yü Pasife Al (Dondur)</option>
+                        <option value="RESUME_BOT">▶️ Gözcü'yü Aktif Et (Başlat)</option>
+                    </optgroup>
+                    <optgroup label="⚙️ SÜRE VE ZAMAN AYARLARI">
+                        <option value="SET_STARTUP">⏱️ Sıra Bekleme Süresi</option>
+                        <option value="SET_JAIL">⚖️ Hapis Bekleme Süresi</option>
+                        <option value="SET_KARALISTE">💀 Karaliste Bekleme Süresi</option>
+                        <option value="SET_RESTRICT">⛔ Yasaklı Saat Dilimi</option>
+                        <option value="SET_WEEKEND_MODE">📅 Hafta Sonu Modu</option>
+                    </optgroup>
+                    <optgroup label="🔑 LİSANS İŞLEMLERİ">
+                        <option value="SET_MUSTERI_ID">🔄 Müşteri / Lisans ID Değiştir</option>
+                    </optgroup>
                 </select>
             </div>
 
+            <!-- Dinamik Parametre Konteyneri -->
             <div id="paramContainer" class="hidden mb-6">
-                <label id="paramLabel" class="block text-slate-300 text-sm font-bold mb-2">Değer</label>
-                <input type="text" id="commandParam" class="w-full bg-slate-800 text-white rounded-lg p-3 border border-slate-600 focus:border-blue-500 outline-none font-mono">
-                <p id="paramHelpText" class="text-xs text-slate-400 mt-2"></p>
+                <label id="paramLabel" class="block text-slate-400 text-xs font-black uppercase tracking-wider mb-2">Değer</label>
+                <div id="paramInputArea"></div>
+                <p id="paramHelpText" class="text-[10px] text-slate-500 mt-2 leading-relaxed"></p>
             </div>
 
             <div class="flex gap-3 mt-6">
-                <button onclick="closeCommandModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-4 rounded-lg transition-colors">İptal</button>
-                <button onclick="sendRemoteCommand()" id="sendCmdBtn" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-lg transition-colors flex justify-center items-center">
-                    GÖNDER <i class="fa-solid fa-paper-plane ml-2"></i>
+                <button onclick="closeCommandModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 px-4 rounded-lg transition-colors text-sm">İptal</button>
+                <button onclick="sendRemoteCommand()" id="sendCmdBtn" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-lg transition-all text-sm flex justify-center items-center gap-2 shadow-lg shadow-blue-900/30">
+                    GÖNDER <i class="fa-solid fa-paper-plane text-xs"></i>
                 </button>
             </div>
         </div>
     </div>
 
     <!-- GRUPLARI YÖNET MODALI (+ BUTONU) -->
-    <div id="groupManageModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="glass-panel p-6 rounded-2xl max-w-sm w-full border border-slate-600 shadow-2xl relative overflow-hidden">
+    <div id="groupManageModal" class="hidden fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4 backdrop-blur-md">
+        <div class="glass-panel p-6 rounded-2xl max-w-sm w-full border border-slate-800 shadow-2xl relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-1 bg-green-500"></div>
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-bold text-white flex items-center"><i class="fa-solid fa-tags mr-2 text-green-400"></i> Grupları Yönet</h3>
-                <button onclick="closeGroupManageModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button>
+                <h3 class="text-xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-tags text-green-400"></i> Grupları Yönet</h3>
+                <button onclick="closeGroupManageModal()" class="text-slate-500 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button>
             </div>
-            <div class="bg-slate-800/50 rounded-lg p-3 mb-4 border border-slate-700">
-                <p class="text-xs text-slate-400 uppercase">Seçili Karakter</p>
-                <p id="groupManageBotName" class="font-bold text-white">Seçiliyor...</p>
+            <div class="bg-slate-950/60 rounded-xl p-3 mb-4 border border-slate-800">
+                <p class="text-[10px] text-slate-500 uppercase tracking-wider">Seçili Karakter</p>
+                <p id="groupManageBotName" class="font-bold text-white text-sm mt-0.5">Seçiliyor...</p>
             </div>
-            <div id="groupCheckboxes" class="space-y-2 max-h-48 overflow-y-auto pr-2 scrollbar-hide mb-4">
-            </div>
-            <button onclick="saveBotGroups()" class="w-full text-white bg-green-600 hover:bg-green-500 font-bold rounded-lg px-5 py-3 shadow-lg transition-colors">
+            <div id="groupCheckboxes" class="space-y-2 max-h-48 overflow-y-auto pr-2 scrollbar-hide mb-4"></div>
+            <button onclick="saveBotGroups()" class="w-full text-white bg-green-600 hover:bg-green-500 font-bold rounded-lg px-5 py-3 shadow-lg transition-all text-sm">
                 Kaydet <i class="fa-solid fa-check ml-2"></i>
             </button>
         </div>
     </div>
 
     <!-- TOPLU GRUP EKLEME MODALI -->
-    <div id="massGroupModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div id="massGroupModal" class="hidden fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4 backdrop-blur-md">
         <div class="glass-panel p-6 rounded-2xl max-w-sm w-full border border-emerald-500 shadow-2xl relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-1 bg-emerald-500"></div>
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-bold text-white flex items-center"><i class="fa-solid fa-tags mr-2 text-emerald-400"></i> Toplu Grup Ekle</h3>
-                <button onclick="closeMassGroupModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button>
+                <h3 class="text-xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-tags text-emerald-400"></i> Toplu Grup Ekle</h3>
+                <button onclick="closeMassGroupModal()" class="text-slate-500 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button>
             </div>
-            <div class="bg-slate-800/50 rounded-lg p-3 mb-4 border border-slate-700">
-                <p class="text-xs text-emerald-400 uppercase font-bold"><i class="fa-solid fa-circle-info mr-1"></i> Bilgi</p>
-                <p class="text-sm text-slate-300 mt-1">Özenle seçilmiş <strong id="massGroupBotCount" class="text-white">0</strong> bota aşağıdaki gruplar eklenecektir.</p>
+            <div class="bg-slate-950/60 rounded-xl p-3 mb-4 border border-slate-800">
+                <p class="text-xs text-emerald-400 uppercase font-black tracking-wider"><i class="fa-solid fa-circle-info mr-1"></i> Bilgi</p>
+                <p class="text-sm text-slate-300 mt-1">Özenle seçilmiş <strong id="massGroupBotCount" class="text-white font-black">0</strong> bota aşağıdaki gruplar eklenecektir.</p>
             </div>
-            <div id="massGroupCheckboxes" class="space-y-2 max-h-48 overflow-y-auto pr-2 scrollbar-hide mb-4">
-            </div>
-            <button onclick="saveMassBotGroups()" id="massGroupSaveBtn" class="w-full text-white bg-emerald-600 hover:bg-emerald-500 font-bold rounded-lg px-5 py-3 shadow-lg transition-colors">
+            <div id="massGroupCheckboxes" class="space-y-2 max-h-48 overflow-y-auto pr-2 scrollbar-hide mb-4"></div>
+            <button onclick="saveMassBotGroups()" id="massGroupSaveBtn" class="w-full text-white bg-emerald-600 hover:bg-emerald-500 font-bold rounded-lg px-5 py-3 shadow-lg transition-all text-sm">
                 Seçilenlere Ekle <i class="fa-solid fa-check ml-2"></i>
             </button>
         </div>
     </div>
 
     <!-- YENİ GRUP EKLE MODALI -->
-    <div id="newGroupModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="glass-panel p-6 rounded-2xl max-w-sm w-full border border-slate-600 shadow-2xl relative overflow-hidden">
+    <div id="newGroupModal" class="hidden fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4 backdrop-blur-md">
+        <div class="glass-panel p-6 rounded-2xl max-w-sm w-full border border-slate-800 shadow-2xl relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-1 bg-blue-400"></div>
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-bold text-white flex items-center"><i class="fa-solid fa-folder-plus mr-2 text-blue-400"></i> Yeni Grup Oluştur</h3>
-                <button onclick="closeNewGroupModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button>
+                <h3 class="text-xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-folder-plus text-blue-400"></i> Yeni Grup Oluştur</h3>
+                <button onclick="closeNewGroupModal()" class="text-slate-500 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button>
             </div>
-            <input type="text" id="newGroupName" placeholder="Örn: Farm Ekibi 1" class="w-full bg-slate-800 border border-slate-600 text-white rounded-lg p-3 mb-4 focus:border-blue-500 outline-none">
-            <button onclick="createNewGroup()" class="w-full text-white bg-blue-600 hover:bg-blue-500 font-bold rounded-lg px-5 py-3 shadow-lg transition-colors">
+            <input type="text" id="newGroupName" placeholder="Örn: Farm Ekibi 1" class="w-full bg-slate-900 border border-slate-800 text-white rounded-lg p-3 mb-4 focus:border-blue-500 outline-none text-sm h-12">
+            <button onclick="createNewGroup()" class="w-full text-white bg-blue-600 hover:bg-blue-500 font-bold rounded-lg px-5 py-3 shadow-lg transition-all text-sm">
                 Oluştur <i class="fa-solid fa-plus ml-2"></i>
             </button>
         </div>
     </div>
 
-    <!-- ADMİN MÜŞTERİ YÖNETİM MODALI -->
-    <div id="adminModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <!-- ADMİN LİSANS VE CANLI DUYURU MODALI -->
+    <div id="adminModal" class="hidden fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4 backdrop-blur-md">
         <div class="glass-panel p-6 rounded-2xl max-w-2xl w-full border border-purple-500 shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
             <div class="absolute top-0 left-0 w-full h-1 bg-purple-500"></div>
 
-            <div class="flex justify-between items-center mb-6 shrink-0">
-                <h2 class="text-2xl font-bold text-white flex items-center">
-                    <i class="fa-solid fa-users-gear text-purple-400 mr-3"></i> Müşteri & Lisans Yönetimi
+            <div class="flex justify-between items-center mb-5 shrink-0">
+                <h2 class="text-2xl font-black text-white flex items-center gap-2">
+                    <i class="fa-solid fa-users-gear text-purple-400"></i> Sistem Yönetim Paneli
                 </h2>
-                <button onclick="closeAdminModal()" class="text-slate-400 hover:text-red-400 transition-colors">
+                <button onclick="closeAdminModal()" class="text-slate-500 hover:text-red-400 transition-colors">
                     <i class="fa-solid fa-xmark text-2xl"></i>
                 </button>
             </div>
 
-            <div class="bg-slate-800 rounded-xl p-4 mb-6 border border-slate-600 shrink-0">
-                <h3 class="text-white font-bold mb-3 text-sm uppercase tracking-wider text-slate-300">Yeni Lisans Oluştur</h3>
-                <div class="flex flex-wrap gap-3">
-                    <input type="text" id="newUserId" placeholder="Müşteri ID (Örn: AHMET)" class="flex-1 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white outline-none focus:border-purple-500 uppercase">
-                    <input type="text" id="newUserPass" placeholder="Şifre" class="flex-1 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white outline-none focus:border-purple-500">
-                    <select id="newUserRole" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white outline-none">
-                        <option value="user">Normal Kullanıcı</option>
-                        <option value="admin">Admin Yetkili</option>
-                    </select>
-                    <button onclick="createUser()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-4 rounded transition-colors">
-                        Oluştur <i class="fa-solid fa-plus ml-1"></i>
-                    </button>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 shrink-0">
+                <!-- Sol: Yeni Lisans Oluştur -->
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                    <h3 class="text-white font-bold mb-3 text-xs uppercase tracking-wider text-slate-400 flex items-center gap-1.5"><i class="fa-solid fa-plus text-purple-400"></i> Yeni Lisans Oluştur</h3>
+                    <div class="space-y-2.5">
+                        <input type="text" id="newUserId" placeholder="Müşteri ID (Örn: AHMET)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-purple-500 uppercase h-10">
+                        <input type="text" id="newUserPass" placeholder="Şifre" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-purple-500 h-10">
+                        <div class="flex gap-2">
+                            <select id="newUserRole" class="flex-grow bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white outline-none h-10">
+                                <option value="user">Normal Müşteri</option>
+                                <option value="admin">Sistem Admini</option>
+                            </select>
+                            <button onclick="createUser()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-4 rounded-lg text-xs transition-colors h-10">
+                                Ekle
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sağ: Canlı Duyuru Yayınla -->
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 flex flex-col justify-between">
+                    <h3 class="text-white font-bold mb-2 text-xs uppercase tracking-wider text-slate-400 flex items-center gap-1.5"><i class="fa-solid fa-bullhorn text-purple-400"></i> Canlı Sistem Duyurusu</h3>
+                    <textarea id="adminDuyuruInput" placeholder="Yayınlamak istediğiniz duyuru metnini buraya yazın..." class="w-full flex-grow bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-white outline-none focus:border-purple-500 h-16 resize-none scrollbar-hide mb-2"></textarea>
+                    <div class="flex gap-2">
+                        <button onclick="yayinlaDuyuru()" class="flex-1 bg-purple-600 hover:bg-purple-500 text-white font-black text-xs py-2 rounded-lg transition-colors flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-check"></i> Yayınla
+                        </button>
+                        <button onclick="kaldirDuyuru()" class="flex-1 bg-slate-800 hover:bg-red-950/40 border border-slate-800 hover:border-red-500/30 text-slate-400 hover:text-red-400 font-black text-xs py-2 rounded-lg transition-colors flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-trash-can"></i> Duyuruyu Kaldır
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <div class="flex-grow overflow-y-auto pr-2 rounded border border-slate-700 bg-slate-900/50">
-                <table class="w-full text-left text-sm text-slate-300">
-                    <thead class="text-xs uppercase bg-slate-800 text-slate-400 sticky top-0">
+            <!-- Kayıtlı Lisanslar Tablosu -->
+            <div class="flex-grow overflow-y-auto pr-2 rounded-xl border border-slate-800 bg-slate-950/40">
+                <table class="w-full text-left text-xs text-slate-300">
+                    <thead class="text-[10px] uppercase bg-slate-900 text-slate-400 sticky top-0 z-10">
                         <tr>
                             <th class="px-4 py-3">Müşteri ID</th>
                             <th class="px-4 py-3">Şifre</th>
@@ -520,75 +454,11 @@
         </div>
     </div>
 
-    <!-- GEMINI AI ANALİZ MODALI -->
-    <div id="aiAnalysisModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="glass-panel p-6 rounded-2xl max-w-3xl w-full border border-purple-500 shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
-            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-blue-500"></div>
-
-            <div class="flex justify-between items-center mb-4 shrink-0">
-                <h2 class="text-2xl font-bold flex items-center ai-text-gradient">
-                    ✨ Gemini Filo Asistanı
-                </h2>
-                <button onclick="closeAiAnalysisModal()" class="text-slate-400 hover:text-red-400 transition-colors">
-                    <i class="fa-solid fa-xmark text-2xl"></i>
-                </button>
-            </div>
-
-            <p class="text-slate-400 text-sm mb-4 shrink-0 border-b border-slate-700 pb-4">
-                Google Gemini yapay zekası, ekrandaki mevcut filtrelenmiş bot verilerini okuyarak stratejik bir sistem analizi sunar.
-            </p>
-
-            <div id="aiContentArea" class="flex-grow overflow-y-auto pr-2 text-slate-300 ai-content text-sm leading-relaxed p-4 bg-slate-900/50 rounded-lg border border-slate-700/50"></div>
-
-            <div class="mt-4 flex justify-end shrink-0 pt-4 border-t border-slate-700">
-                <button onclick="closeAiAnalysisModal()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-6 rounded-lg transition-colors">
-                    Kapat
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- DISCORD AYARLARI MODALI -->
-    <div id="discordModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="glass-panel p-6 rounded-2xl max-w-md w-full border border-indigo-500 shadow-2xl relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-1 bg-indigo-500"></div>
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold text-white flex items-center">
-                    <i class="fa-brands fa-discord text-indigo-400 mr-3"></i> Discord Bildirimleri
-                </h2>
-                <button onclick="closeDiscordSettingsModal()" class="text-slate-400 hover:text-red-400 transition-colors">
-                    <i class="fa-solid fa-xmark text-2xl"></i>
-                </button>
-            </div>
-
-            <div class="mb-4">
-                <label class="block text-slate-300 text-sm font-bold mb-2">Discord Webhook URL</label>
-                <input type="text" id="discordWebhookInput" placeholder="https://discord.com/api/webhooks/..." class="w-full bg-slate-800 text-white rounded-lg p-3 border border-slate-600 focus:border-indigo-500 outline-none font-mono text-sm">
-                <p class="text-[11px] text-slate-400 mt-2">Botlarda Kapanma, Hapis, Karaliste, Oyundan Düşme veya Kritik NPC Hataları olduğunda kırmızı alarm gönderilir.</p>
-            </div>
-
-            <div class="mb-6 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-                <label class="flex items-center cursor-pointer">
-                    <input type="checkbox" id="enableDiscordAlerts" class="custom-checkbox w-5 h-5 rounded appearance-none bg-slate-900 border border-slate-600 outline-none cursor-pointer">
-                    <span class="ml-3 text-sm font-bold text-slate-200">Bildirimleri Bu Cihazdan Gönder</span>
-                </label>
-                <p class="text-xs text-slate-400 mt-2 ml-8">Spam olmaması için sadece ana bilgisayarınızda veya hep açık olan bir panelde aktif edin.</p>
-            </div>
-
-            <div class="flex gap-3">
-                <button onclick="saveDiscordSettings()" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-lg transition-colors flex justify-center items-center shadow-lg shadow-indigo-900/50">
-                    <i class="fa-solid fa-floppy-disk mr-2"></i> KAYDET
-                </button>
-            </div>
-        </div>
-    </div>
-
     <!-- JAVASCRIPT KODLARI -->
     <script>
         // --- AYARLAR ---
         const FIREBASE_URL = "https://gozcusistemi.xyz/"; 
         const PANEL_API_KEY = "GozcuGizliAnahtar123"; 
-        const apiKey = ""; 
 
         async function apiFetch(url, options = {}) {
             const separator = url.includes('?') ? '&' : '?';
@@ -632,6 +502,9 @@
                 currentMusteriID = savedId;
                 currentUserRole = savedRole || "user";
                 loadDashboard();
+            } else {
+                fetchCanliDuyuru(); // Login ekranı için duyuru çek
+                setInterval(fetchCanliDuyuru, 15000); // 15 saniyede bir duyuruyu kontrol et
             }
         }
 
@@ -677,7 +550,7 @@
                     alert("❌ Hatalı Müşteri ID veya Şifre!");
                 }
             } catch (error) {
-                alert("Bağlantı hatası (API veya Ağ kontrol edin): " + error);
+                alert("Bağlantı hatası: " + error);
             } finally {
                 btn.innerHTML = '<span>SİSTEME GİRİŞ YAP</span> <i class="fa-solid fa-arrow-right ml-2"></i>';
                 btn.disabled = false;
@@ -721,9 +594,11 @@
             }
 
             fetchBotData();
-            refreshInterval = setInterval(fetchBotData, 5000);
-            
-            autoTriggerWebData();
+            fetchCanliDuyuru();
+            refreshInterval = setInterval(() => {
+                fetchBotData();
+                fetchCanliDuyuru();
+            }, 5000);
         }
 
         function logout() {
@@ -742,174 +617,86 @@
             currentMusteriID = "";
             currentUserRole = "user";
             selectedBotKeys.clear();
+            fetchCanliDuyuru(); // Giriş ekranı duyurusu çek
         }
 
-        async function triggerDataBridge() {
-            if (!currentMusteriID) return false;
-            
-            const targetId = (currentUserRole === "admin" && document.getElementById('adminViewFilter').value !== "ALL") 
-                                ? document.getElementById('adminViewFilter').value 
-                                : currentMusteriID;
-
+        // --- CANLI DUYURU APILERI ---
+        async function fetchCanliDuyuru() {
             try {
-                const triggerUrl = `${FIREBASE_URL}api/tetikle/${targetId}?key=${PANEL_API_KEY}`;
-                const response = await fetch(triggerUrl);
-                const data = await response.json();
-                return data.success;
-            } catch (error) {
-                console.error("VDS Tetikleme Hatası:", error);
-                return false;
-            }
-        }
-
-        async function manualTriggerWebData() {
-            const btn = document.getElementById('manualFetchBtn');
-            if(btn) {
-                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mb-1"></i> Çekiliyor...';
-                btn.disabled = true;
-            }
-            
-            const success = await triggerDataBridge();
-            
-            if(btn) {
-                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-down mb-1"></i> Web\'den Çek';
-                btn.disabled = false;
-            }
-            
-            if(success) {
-                fetchBotData();
-                alert("✅ Web sitesinden veriler başarıyla çekildi ve güncellendi!");
-            } else {
-                alert("❌ Veri çekme işlemi başarısız oldu. Lütfen VDS Sunucusunun (Node.js) ve Köprü Ayarlarının aktif olduğundan emin olun.");
-            }
-        }
-
-        function autoTriggerWebData() {
-            console.log("Otomatik veri çekme başlatıldı (1 kere tetiklenecek)");
-            triggerDataBridge(); 
-        }
-
-        async function openDataBridgeModal() {
-            const listContainer = document.getElementById('bridgeBotList');
-            listContainer.innerHTML = `<div class="text-center py-8 text-slate-500"><i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2"></i><br>Ayarlar ve botlar yükleniyor...</div>`;
-            document.getElementById('dataBridgeModal').classList.remove('hidden');
-            
-            try {
-                const res = await apiFetch(`${FIREBASE_URL}Users/${currentMusteriID}/BridgeConfig.json`);
-                let config = {};
-                if (res.ok) config = await res.json() || {};
-
-                document.getElementById('bridgeUrl').value = config.targetUrl || "https://knfbx.com";
-                document.getElementById('bridgeEmail').value = config.email || "";
-                document.getElementById('bridgePass').value = config.password || "";
+                const res = await apiFetch(`${FIREBASE_URL}Panel/Duyuru.json`);
+                const text = await res.json();
                 
-                document.getElementById('fetch_Coin').checked = config.fetchCoin !== false;
-                document.getElementById('fetch_Premium').checked = config.fetchPremium !== false;
-                document.getElementById('fetch_CharName').checked = config.fetchCharName !== false;
-                document.getElementById('fetch_Target').checked = config.fetchTarget !== false;
-                document.getElementById('fetch_Material').checked = config.fetchMaterial !== false;
+                const loginBanner = document.getElementById('loginDuyuruBanner');
+                const loginText = document.getElementById('loginDuyuruText');
+                const dashBanner = document.getElementById('dashboardDuyuruBanner');
+                const dashText = document.getElementById('dashboardDuyuruText');
 
-                renderBridgeBotList(config.activeBots || null);
+                const isClosed = localStorage.getItem('gozcu_duyuru_closed_text') === text;
+
+                if (text && text.trim() !== "" && !isClosed) {
+                    if (loginBanner && loginText && document.getElementById('dashboardScreen').classList.contains('hidden')) {
+                        loginText.innerText = text;
+                        loginBanner.classList.remove('hidden');
+                    }
+                    if (dashBanner && dashText && !document.getElementById('dashboardScreen').classList.contains('hidden')) {
+                        dashText.innerText = text;
+                        dashBanner.classList.remove('hidden');
+                        dashBanner.classList.add('flex');
+                    }
+                } else {
+                    if (loginBanner) loginBanner.classList.add('hidden');
+                    if (dashBanner) {
+                        dashBanner.classList.add('hidden');
+                        dashBanner.classList.remove('flex');
+                    }
+                }
             } catch (e) {
-                listContainer.innerHTML = `<div class="text-center py-8 text-red-400">Ayarlar çekilirken bir hata oluştu.</div>`;
+                console.error("Duyuru çekilemedi:", e);
             }
         }
 
-        function closeDataBridgeModal() {
-            document.getElementById('dataBridgeModal').classList.add('hidden');
-        }
-
-        function renderBridgeBotList(savedActiveBots) {
-            const listContainer = document.getElementById('bridgeBotList');
-            listContainer.innerHTML = '';
-            
-            const userBots = Object.values(allBotsData).filter(b => b._owner === currentMusteriID);
-
-            if (userBots.length === 0) {
-                listContainer.innerHTML = `<div class="text-center py-8 text-slate-500"><i class="fa-solid fa-ghost text-2xl mb-2"></i><br>Sisteme kayıtlı botunuz bulunmuyor.</div>`;
-                return;
-            }
-
-            userBots.sort((a, b) => (a.Account || "").localeCompare(b.Account || "", undefined, {numeric: true}));
-
-            userBots.forEach(bot => {
-                const botKey = bot._key;
-                const isChecked = savedActiveBots ? (savedActiveBots[botKey] === true) : true;
-                let iconClass = bot.StatusCode === "ONLINE" ? "text-green-400" : "text-slate-500";
-                
-                listContainer.innerHTML += `
-                    <label class="flex items-center p-3 hover:bg-slate-700/50 rounded-lg cursor-pointer transition-colors border border-slate-700 hover:border-slate-500 bg-slate-900/30">
-                        <input type="checkbox" value="${botKey}" class="bridge-bot-cb custom-checkbox w-5 h-5 rounded bg-slate-900 border-slate-600 shadow-inner" ${isChecked ? 'checked' : ''}>
-                        <div class="ml-4 flex flex-col flex-grow">
-                            <span class="text-sm font-bold text-white flex items-center">
-                                <i class="fa-solid fa-desktop mr-2 ${iconClass} text-xs"></i> ${bot.Account || bot.MachineName}
-                            </span>
-                            <span class="text-[10px] text-slate-400 mt-0.5">${bot.Server || 'Sunucu Yok'} | ${bot.WebCharName || '-'}</span>
-                        </div>
-                    </label>
-                `;
-            });
-        }
-
-        function toggleAllBridgeBots() {
-            const checkboxes = document.querySelectorAll('.bridge-bot-cb');
-            if (checkboxes.length === 0) return;
-            const anyUnchecked = Array.from(checkboxes).some(cb => !cb.checked);
-            checkboxes.forEach(cb => cb.checked = anyUnchecked);
-        }
-
-        async function saveDataBridgeSettings() {
-            const btn = document.getElementById('saveBridgeBtn');
-            const targetUrl = document.getElementById('bridgeUrl').value.trim();
-            const email = document.getElementById('bridgeEmail').value.trim();
-            const pass = document.getElementById('bridgePass').value.trim();
-
-            if (!targetUrl || !email || !pass) {
-                alert("Site URL, Email ve Şifresi boş bırakılamaz!");
-                return;
-            }
-
-            const activeBots = {};
-            document.querySelectorAll('.bridge-bot-cb').forEach(cb => {
-                if (cb.checked) activeBots[cb.value] = true;
-            });
-
-            const configPayload = {
-                targetUrl: targetUrl,
-                email: email,
-                password: pass,
-                fetchCoin: document.getElementById('fetch_Coin').checked,
-                fetchPremium: document.getElementById('fetch_Premium').checked,
-                fetchCharName: document.getElementById('fetch_CharName').checked,
-                fetchTarget: document.getElementById('fetch_Target').checked,
-                fetchMaterial: document.getElementById('fetch_Material').checked,
-                activeBots: activeBots,
-                lastUpdated: Date.now()
-            };
-
+        async function yayinlaDuyuru() {
+            const text = document.getElementById('adminDuyuruInput').value.trim();
+            if (!text) return alert("Lütfen yayınlanacak bir duyuru metni girin!");
             try {
-                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> KAYDEDİLİYOR...';
-                btn.disabled = true;
-
-                await apiFetch(`${FIREBASE_URL}Users/${currentMusteriID}/BridgeConfig.json`, {
+                await apiFetch(`${FIREBASE_URL}Panel/Duyuru.json`, {
                     method: 'PUT',
-                    body: JSON.stringify(configPayload)
+                    body: JSON.stringify(text)
                 });
-
-                alert("✅ Veri Köprüsü ayarları başarıyla güncellendi!\nArka plan sistemi artık belirlediğiniz kurallara göre sadece seçili verileri ve botları işleyecek.");
-                closeDataBridgeModal();
+                alert("📢 Sistem duyurusu başarıyla yayınlandı!");
+                fetchCanliDuyuru();
             } catch (e) {
-                alert("Ayarlar kaydedilirken hata oluştu: " + e);
-            } finally {
-                btn.innerHTML = '<i class="fa-solid fa-floppy-disk mr-2"></i> KÖPRÜ AYARLARINI KAYDET & UYGULA';
-                btn.disabled = false;
+                alert("Duyuru yayınlanamadı: " + e);
             }
         }
 
+        async function kaldirDuyuru() {
+            if (!confirm("Yayındaki sistem duyurusunu silmek istediğinize emin misiniz?")) return;
+            try {
+                await apiFetch(`${FIREBASE_URL}Panel/Duyuru.json`, { method: 'DELETE' });
+                document.getElementById('adminDuyuruInput').value = "";
+                alert("🗑️ Duyuru başarıyla kaldırıldı!");
+                fetchCanliDuyuru();
+            } catch (e) {
+                alert("Duyuru kaldırılamadı: " + e);
+            }
+        }
+
+        function closeDuyuru() {
+            const loginText = document.getElementById('loginDuyuruText')?.innerText || "";
+            const dashText = document.getElementById('dashboardDuyuruText')?.innerText || "";
+            const activeText = loginText || dashText;
+            if (activeText) {
+                localStorage.setItem('gozcu_duyuru_closed_text', activeText);
+            }
+            document.getElementById('loginDuyuruBanner')?.classList.add('hidden');
+            document.getElementById('dashboardDuyuruBanner')?.classList.add('hidden');
+            document.getElementById('dashboardDuyuruBanner')?.classList.remove('flex');
+        }
+
+        // --- BOT VERI CEKIMI ---
         async function fetchBotData() {
             try {
-                document.getElementById('refreshIcon').classList.add('animate-spin');
-
                 const adminViewFilter = document.getElementById('adminViewFilter');
                 let targetId = currentMusteriID;
                 let fetchAll = false;
@@ -963,9 +750,6 @@
                     }
                 }
 
-                if (localStorage.getItem('gozcu_enable_discord') === 'true') {
-                    checkForDiscordAlerts(allBotsData, previousBotsData);
-                }
                 previousBotsData = JSON.parse(JSON.stringify(allBotsData));
 
                 updateServerDropdown(); 
@@ -973,7 +757,6 @@
                 renderBots();
 
                 document.getElementById('lastRefreshTime').innerText = new Date().toLocaleTimeString('tr-TR');
-                setTimeout(() => document.getElementById('refreshIcon').classList.remove('animate-spin'), 500);
             } catch (error) {
                 console.error("Veri çekme hatası:", error);
             }
@@ -981,7 +764,7 @@
 
         function toggleViewMode() {
             currentViewMode = currentViewMode === 'grid' ? 'list' : 'grid';
-            document.getElementById('viewModeIcon').className = currentViewMode === 'grid' ? 'fa-solid fa-list text-xl' : 'fa-solid fa-border-all text-xl';
+            document.getElementById('viewModeIcon').className = currentViewMode === 'grid' ? 'fa-solid fa-list' : 'fa-solid fa-border-all';
             renderBots();
         }
 
@@ -1020,11 +803,11 @@
 
             let allBtnClass = currentFilter === 'ALL' 
                 ? 'bg-blue-600 text-white shadow-lg border-blue-500' 
-                : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border-slate-600';
+                : 'bg-slate-900/80 text-slate-400 hover:bg-slate-800 border-slate-800';
 
             container.innerHTML = `
-                <button onclick="filterByGroup('ALL')" class="shrink-0 ${allBtnClass} border px-4 py-1.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap">
-                    Tüm Karakterler (<span class="text-xs opacity-80">${botList.length}</span>)
+                <button onclick="filterByGroup('ALL')" class="shrink-0 ${allBtnClass} border px-4 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap">
+                    Tüm Karakterler (<span class="text-[10px] opacity-80">${botList.length}</span>)
                 </button>
             `;
 
@@ -1034,19 +817,26 @@
 
                 let btnClass = isActive 
                     ? 'bg-blue-600 text-white shadow-lg border-blue-500' 
-                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border-slate-600';
+                    : 'bg-slate-900/80 text-slate-400 hover:bg-slate-800 border-slate-800';
 
                 container.innerHTML += `
                     <div class="relative group shrink-0">
-                        <button onclick="filterByGroup('${group}')" class="${btnClass} border px-4 py-1.5 rounded-lg text-sm font-bold transition-all flex items-center pr-8 whitespace-nowrap">
-                            <i class="fa-solid fa-tag mr-2 opacity-70"></i> ${group} <span class="ml-1 text-xs opacity-70">(${count})</span>
+                        <button onclick="filterByGroup('${group}')" class="${btnClass} border px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center pr-8 whitespace-nowrap">
+                            <i class="fa-solid fa-tag mr-1.5 opacity-60"></i> ${group} <span class="ml-1 text-[10px] opacity-60">(${count})</span>
                         </button>
-                        <button onclick="deleteGroup('${group}', event)" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-400 opacity-60 group-hover:opacity-100 transition-opacity" title="Grubu Sil">
+                        <button onclick="deleteGroup('${group}', event)" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity" title="Grubu Sil">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
                 `;
             });
+
+            // YENİ GRUP EKLEME HIZLI İKON BUTONU
+            container.innerHTML += `
+                <button onclick="openNewGroupModal()" class="shrink-0 bg-slate-900/60 border border-slate-800 hover:border-blue-500/50 text-slate-500 hover:text-blue-400 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1">
+                    <i class="fa-solid fa-plus text-[10px]"></i> Yeni Grup
+                </button>
+            `;
         }
 
         function filterByGroup(groupName) {
@@ -1054,63 +844,6 @@
             selectedBotKeys.clear();
             renderGroupPills();
             renderBots();
-        }
-
-        function checkForDiscordAlerts(currentData, previousData) {
-            const webhookUrl = localStorage.getItem('gozcu_discord_webhook');
-            if (!webhookUrl || !webhookUrl.startsWith("http")) return;
-
-            const now = new Date();
-
-            Object.keys(currentData).forEach(botKey => {
-                const newBot = currentData[botKey];
-                const oldBot = previousData[botKey] || {};
-
-                const badStatuses = ["OTP_ERROR", "NPC_ERROR", "JAIL", "BLACKLIST", "RESTARTING"];
-                if (badStatuses.includes(newBot.StatusCode) && oldBot.StatusCode !== newBot.StatusCode) {
-                    sendDiscordWebhook(webhookUrl, newBot, `🚨 KRİTİK DURUM: ${newBot.StatusMsg || newBot.StatusCode}`);
-                }
-
-                const lastUpd = parseCustomDate(newBot.LastUpdate || "01.01.2000 00:00:00");
-                const diffMinutes = (now - lastUpd) / 1000 / 60;
-
-                if (diffMinutes > 4 && !newBot._alertedOffline) {
-                    sendDiscordWebhook(webhookUrl, newBot, "⚫ BAĞLANTI KOPTU (Makineden 4+ dakikadır veri alınamıyor!)");
-                    currentData[botKey]._alertedOffline = true; 
-                } 
-                else if (diffMinutes <= 4) {
-                    currentData[botKey]._alertedOffline = false;
-                }
-            });
-        }
-
-        function sendDiscordWebhook(url, bot, reasonText) {
-            const payload = {
-                username: "Gözcü Rapor Merkezi",
-                avatar_url: "https://cdn-icons-png.flaticon.com/512/3204/3204052.png",
-                embeds: [{
-                    title: `⚠️ SİSTEM ALARMI`,
-                    color: 15158332, 
-                    description: `**Hesap:** \`${bot.Account || 'Bilinmiyor'}\`\n**Sunucu:** \`${bot.Server || 'Bilinmiyor'}\`\n**Karakter:** \`${bot.WebCharName || '-'}\`\n**Makine:** \`${bot.MachineName || 'PC'}\`\n**Müşteri:** \`${bot._owner || currentMusteriID}\``,
-                    fields: [{ name: "Detay / Rapor", value: `\`\`\`diff\n- ${reasonText}\n\`\`\`` }],
-                    timestamp: new Date().toISOString()
-                }]
-            };
-            fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-                .catch(err => console.log("Discord Webhook Hatası:", err));
-        }
-
-        function openDiscordSettingsModal() {
-            document.getElementById('discordWebhookInput').value = localStorage.getItem('gozcu_discord_webhook') || "";
-            document.getElementById('enableDiscordAlerts').checked = localStorage.getItem('gozcu_enable_discord') === 'true';
-            document.getElementById('discordModal').classList.remove('hidden');
-        }
-        function closeDiscordSettingsModal() { document.getElementById('discordModal').classList.add('hidden'); }
-        function saveDiscordSettings() {
-            localStorage.setItem('gozcu_discord_webhook', document.getElementById('discordWebhookInput').value.trim());
-            localStorage.setItem('gozcu_enable_discord', document.getElementById('enableDiscordAlerts').checked);
-            closeDiscordSettingsModal();
-            alert("✅ Discord bildirim ayarları başarıyla kaydedildi! Bildirimler artık aktif.");
         }
 
         function updateServerDropdown() {
@@ -1222,9 +955,9 @@
             } else {
                 ownerGroups.forEach(g => {
                     let checked = currentGroups.includes(g) ? 'checked' : '';
-                    html += `<label class="flex items-center space-x-3 p-2 hover:bg-slate-700 rounded cursor-pointer transition">
-                        <input type="checkbox" value="${g}" class="group-cb custom-checkbox h-5 w-5 rounded appearance-none bg-slate-900 border border-slate-600 outline-none cursor-pointer" ${checked}>
-                        <span class="text-slate-300">${g}</span>
+                    html += `<label class="flex items-center space-x-3 p-2 hover:bg-slate-800 rounded-lg cursor-pointer transition" onclick="event.stopPropagation()">
+                        <input type="checkbox" value="${g}" class="group-cb custom-checkbox h-5 w-5 rounded appearance-none bg-slate-900 border border-slate-700 outline-none cursor-pointer" ${checked}>
+                        <span class="text-slate-300 text-sm">${g}</span>
                     </label>`;
                 });
             }
@@ -1268,9 +1001,9 @@
                 html = '<p class="text-sm text-slate-500 italic">Bu müşteri için hiç grup yok. Önce grup oluşturun.</p>';
             } else {
                 ownerGroups.forEach(g => {
-                    html += `<label class="flex items-center space-x-3 p-2 hover:bg-slate-700 rounded cursor-pointer transition">
-                        <input type="checkbox" value="${g}" class="mass-group-cb custom-checkbox h-5 w-5 rounded appearance-none bg-slate-900 border border-slate-600 outline-none cursor-pointer">
-                        <span class="text-slate-300">${g}</span>
+                    html += `<label class="flex items-center space-x-3 p-2 hover:bg-slate-800 rounded-lg cursor-pointer transition">
+                        <input type="checkbox" value="${g}" class="mass-group-cb custom-checkbox h-5 w-5 rounded appearance-none bg-slate-900 border border-slate-700 outline-none cursor-pointer">
+                        <span class="text-slate-300 text-sm">${g}</span>
                     </label>`;
                 });
             }
@@ -1337,45 +1070,75 @@
             selectedBotKey = ""; selectedBotOwner = ""; document.getElementById('commandParam').value = ""; 
         }
 
+        // --- DINAMIK INPUT / PARAMETRE YAPILANDIRICISI ---
         function toggleCommandInputs() {
             const type = document.getElementById('commandType').value;
             const container = document.getElementById('paramContainer');
             const label = document.getElementById('paramLabel');
-            const input = document.getElementById('commandParam');
+            const inputArea = document.getElementById('paramInputArea');
             const help = document.getElementById('paramHelpText');
             const warningEl = document.getElementById('massActionWarning');
 
+            // Akıllı Dağıtım & Anında İletişim Uyarı Düzenlemesi
             if (warningEl && !warningEl.classList.contains('hidden')) {
-                if (type === 'KILL_GAME') {
-                    warningEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1 text-red-400"></i><strong class="text-red-400">ACİL DURUM:</strong> Bu işlem bekletilmeden tüm hedeflere <strong>ANINDA</strong> yollanır!';
-                    warningEl.className = "mt-2 p-2 bg-red-900/40 border border-red-700 rounded-lg text-xs text-red-200";
+                if (type === 'START_GAME') {
+                    warningEl.innerHTML = '<i class="fa-solid fa-circle-info mr-1 text-indigo-400"></i><strong>Akıllı Dağıtım (Yığılma Önleyici):</strong> Bu işlem seçili botlara sırayla uygulanır. Her 10 saniyede 4 bot kuyruğa alınır.';
+                    warningEl.className = "mt-2.5 p-2.5 bg-indigo-950/40 border border-indigo-700/30 rounded-lg text-xs text-indigo-200";
                 } else {
-                    warningEl.innerHTML = '<i class="fa-solid fa-circle-info mr-1 text-indigo-400"></i><strong>Akıllı Dağıtım:</strong> Bu işlem seçili botlara sırayla uygulanır. Her 10 saniyede 4 bot kuyruğa alınır.';
-                    warningEl.className = "mt-2 p-2 bg-indigo-900/40 border border-indigo-700 rounded-lg text-xs text-indigo-200";
+                    warningEl.innerHTML = '<i class="fa-solid fa-bolt mr-1 text-emerald-400"></i><strong>Hızlı Gönderim:</strong> Bu işlem bekletilmeden tüm hedeflere <strong>ANINDA</strong> (0 saniye gecikmeyle) iletilir!';
+                    warningEl.className = "mt-2.5 p-2.5 bg-emerald-950/40 border border-emerald-700/30 rounded-lg text-xs text-emerald-200";
                 }
             }
 
             if (['SET_JAIL', 'SET_STARTUP', 'SET_KARALISTE'].includes(type)) {
-                container.classList.remove('hidden'); label.innerText = 'Yeni Süre (Dakika)';
-                input.placeholder = 'Örn: 60'; input.type = 'number'; help.innerText = 'Bot, ayarlanan süre boyunca bekler.';
+                container.classList.remove('hidden'); 
+                label.innerText = 'Yeni Süre (Dakika)';
+                inputArea.innerHTML = `<input type="number" id="commandParam" placeholder="Örn: 60" class="w-full bg-slate-900 border border-slate-800 text-white rounded-lg p-3 outline-none focus:border-blue-500 h-12 font-mono">`;
+                help.innerText = 'Gözcü, ayarlanan süre boyunca bekleyecektir.';
+            } else if (type === 'SET_OPEN_TIME') {
+                container.classList.remove('hidden');
+                label.innerText = 'Oyunun Açılacağı Saat';
+                inputArea.innerHTML = `<input type="time" id="commandParam" class="w-full bg-slate-900 border border-slate-800 text-white rounded-lg p-3 outline-none focus:border-blue-500 h-12 font-mono">`;
+                help.innerText = '⏳ Bu saat geldiğinde sistem yasaklı saatlerde olsa bile pas geçer ve oyuna zorla giriş yapar.';
+            } else if (type === 'SET_OPEN_DELAY') {
+                container.classList.remove('hidden');
+                label.innerText = 'Kaç Dakika Sonra Açılsın?';
+                inputArea.innerHTML = `<input type="number" id="commandParam" placeholder="Örn: 45" class="w-full bg-slate-900 border border-slate-800 text-white rounded-lg p-3 outline-none focus:border-blue-500 h-12 font-mono">`;
+                help.innerText = '⏳ Belirtilen dakika dolduğunda yasaklı saatleri pas geçer ve oyuna girer.';
             } else if (type === 'SET_RESTRICT') {
-                container.classList.remove('hidden'); label.innerText = 'Yeni Yasaklı Saat Dilimi';
-                input.placeholder = 'Örn: 10:00-19:00'; input.type = 'text'; help.innerText = 'Kaldırmak için YASAKLI_YOK yazabilirsiniz.';
+                container.classList.remove('hidden'); 
+                label.innerText = 'Yeni Yasaklı Saat Dilimi';
+                inputArea.innerHTML = `<input type="text" id="commandParam" placeholder="Örn: 10:00-19:00" class="w-full bg-slate-900 border border-slate-800 text-white rounded-lg p-3 outline-none focus:border-blue-500 h-12 font-mono">`;
+                help.innerText = 'Yasak saatleri kaldırmak için YASAKLI_YOK yazabilirsiniz.';
+            } else if (type === 'SET_WEEKEND_MODE') {
+                container.classList.remove('hidden');
+                label.innerText = 'Hafta Sonu Modu Durumu';
+                inputArea.innerHTML = `
+                    <select id="commandParam" class="w-full bg-slate-900 border border-slate-800 text-white rounded-lg p-3 outline-none focus:border-blue-500 h-12 cursor-pointer font-bold text-sm">
+                        <option value="YASAKLI_YOK">🟢 Yasaklı Saatleri Yok Say (Hafta Sonu Sürekli Çalış)</option>
+                        <option value="YASAKLI_AKTIF">🔴 Yasaklı Saatler Aktif (Normal Düzen)</option>
+                    </select>
+                `;
+                help.innerText = 'Hafta sonları yasaklı saat kurallarının devre dışı bırakılıp bırakılmayacağını belirler.';
             } else if (type === 'SET_MUSTERI_ID') {
-                container.classList.remove('hidden'); label.innerText = 'Yeni Müşteri (Lisans) ID';
-                input.placeholder = 'Örn: YENI_ID_123'; input.type = 'text'; help.innerText = 'DİKKAT: Bu işlem botun bağlantısını kesip yeni ID ile tekrar bağlanmasını (kapanıp açılmasını) sağlar.';
+                container.classList.remove('hidden'); 
+                label.innerText = 'Yeni Müşteri (Lisans) ID';
+                inputArea.innerHTML = `<input type="text" id="commandParam" placeholder="Örn: YENI_ID_123" class="w-full bg-slate-900 border border-slate-800 text-white rounded-lg p-3 outline-none focus:border-blue-500 h-12 font-mono">`;
+                help.innerText = 'DİKKAT: Bu işlem botun bağlantısını kesip yeni ID ile tekrar bağlanmasını (kapanıp açılmasını) sağlar.';
             } else {
-                container.classList.add('hidden'); input.value = ''; 
+                container.classList.add('hidden'); 
+                inputArea.innerHTML = ''; 
             }
         }
 
         async function sendRemoteCommand() {
             if (!selectedBotKey) return;
             const type = document.getElementById('commandType').value;
-            const param = document.getElementById('commandParam').value.trim();
+            const paramInput = document.getElementById('commandParam');
+            const param = paramInput ? paramInput.value.trim() : "";
             const btn = document.getElementById('sendCmdBtn');
 
-            if (['SET_JAIL', 'SET_STARTUP', 'SET_KARALISTE', 'SET_RESTRICT', 'SET_MUSTERI_ID'].includes(type) && !param) {
+            if (['SET_JAIL', 'SET_STARTUP', 'SET_KARALISTE', 'SET_RESTRICT', 'SET_MUSTERI_ID', 'SET_OPEN_TIME', 'SET_OPEN_DELAY', 'SET_WEEKEND_MODE'].includes(type) && !param) {
                 alert("Lütfen bir değer giriniz!"); return;
             }
 
@@ -1392,19 +1155,21 @@
 
                     const updates = {};
                     let count = 0;
-                    let isKillCommand = (type === 'KILL_GAME');
+                    
+                    // TOPLU YIĞILMA ENGELLEME (STAGGERED QUEUE): Sadece START_GAME için geçerlidir!
+                    let isStartCommand = (type === 'START_GAME');
 
                     targetBots.forEach(bot => {
-                        const delayMs = isKillCommand ? 0 : Math.floor(count / 4) * 10000;
+                        const delayMs = isStartCommand ? Math.floor(count / 4) * 10000 : 0;
                         updates[`Bots/${bot.owner}/${bot.key}/Command`] = { ...commandData, delayMs: delayMs };
                         count++;
                     });
 
                     const response = await apiFetch(`${FIREBASE_URL}.json`, { method: 'PATCH', body: JSON.stringify(updates) });
                     if (response.ok) {
-                        if (isKillCommand) alert(`🚨 Acil Kapatma komutu hedef ${targetBots.length} bota ANINDA (Sırasız) iletildi!`);
-                        else alert(`✅ Komut hedef ${targetBots.length} bota (Her 10sn'de 4 bot) iletildi!`);
-                    } else throw new Error("Toplu komut reddedildi.");
+                        if (isStartCommand) alert(`🚨 Yığılma Önleyici Devrede: Komut ${targetBots.length} bota (Her 10sn'de 4 bot) sırayla iletildi!`);
+                        else alert(`✅ Komut ${targetBots.length} bota beklemesiz (ANINDA) iletildi!`);
+                    } else throw new Error("Toplu komut gönderimi başarısız.");
                 } else {
                     commandData.delayMs = 0;
                     const response = await apiFetch(`${FIREBASE_URL}Bots/${selectedBotOwner}/${selectedBotKey}/Command.json`, {
@@ -1418,7 +1183,7 @@
             finally { btn.innerHTML = 'GÖNDER <i class="fa-solid fa-paper-plane ml-2"></i>'; btn.disabled = false; }
         }
 
-        // ============================ KART RENDER İŞLEMLERİ ============================
+        // ============================ KART VE TABLO TASARIMI ============================
         function renderBots() {
             const container = document.getElementById('botsContainer');
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
@@ -1445,8 +1210,8 @@
             });
 
             let tableHTML = `
-                <table class="w-full text-left text-sm text-slate-300 min-w-max border-collapse">
-                    <thead class="text-xs uppercase bg-slate-800 text-slate-400 sticky top-0 border-b-2 border-slate-600 z-10">
+                <table class="w-full text-left text-xs text-slate-300 min-w-max border-collapse">
+                    <thead class="text-[10px] uppercase bg-slate-900 text-slate-400 sticky top-0 border-b border-slate-800/80 z-10">
                         <tr>
                             <th class="px-4 py-3 text-center w-10">
                                 <i class="fa-solid fa-check-double" title="Seç"></i>
@@ -1484,7 +1249,7 @@
                 }
 
                 if (searchTerm) {
-                    const searchStr = `${bot.Account} ${bot.Server} ${bot._owner} ${bot.WebCharName} ${bot.WebTarget} ${bot.WebPremium} ${bot.WebNation}`.toLowerCase();
+                    const searchStr = `${bot.Account} ${bot.Server} ${bot._owner} ${bot.WebCharName} ${bot.WebTarget} ${bot.WebPremium} ${bot.WebNation} ${bot.MachineName}`.toLowerCase();
                     if (!searchStr.includes(searchTerm)) return; 
                 }
 
@@ -1506,8 +1271,12 @@
                 if (channelValue !== "ALL" && botChannel !== channelValue) return;
 
                 if (nationValue !== "ALL") {
-                    let currentNation = bot.WebNation || "";
-                    if (!currentNation.toLowerCase().includes(nationValue.toLowerCase())) return;
+                    let currentNation = (bot.WebNation || "").toLowerCase();
+                    let isKarus = currentNation.includes("karus") || currentNation.includes("orc") || currentNation === "1";
+                    let isHuman = currentNation.includes("morad") || currentNation.includes("human") || currentNation === "2";
+
+                    if (nationValue === "KARUS" && !isKarus) return;
+                    if (nationValue === "HUMAN" && !isHuman) return;
                 }
 
                 filteredBotsList.push({ owner: bot._owner, key: bot._key, account: bot.Account, server: bot.Server, status: statusCode });
@@ -1521,12 +1290,13 @@
 
                 let nationBadge = "";
                 if (bot.WebNation) {
-                    if (bot.WebNation.toLowerCase().includes("karus")) {
-                        nationBadge = `<span class="text-blue-500 font-black text-xs ml-2" title="Karus"><i class="fa-solid fa-circle"></i></span>`;
-                    } else if (bot.WebNation.toLowerCase().includes("morad")) {
-                        nationBadge = `<span class="text-blue-500 font-black text-xs ml-2" title="El Morad"><i class="fa-solid fa-circle"></i></span>`;
+                    let currentNat = bot.WebNation.toLowerCase();
+                    if (currentNat.includes("karus") || currentNat.includes("orc") || currentNat === "1") {
+                        nationBadge = `<span class="text-red-500 font-black text-xs ml-2" title="Karus"><i class="fa-solid fa-circle"></i></span>`;
+                    } else if (currentNat.includes("morad") || currentNat.includes("human") || currentNat === "2") {
+                        nationBadge = `<span class="text-blue-500 font-black text-xs ml-2" title="Human / El Morad"><i class="fa-solid fa-circle"></i></span>`;
                     } else {
-                        nationBadge = `<span class="text-blue-500 font-black text-xs ml-2" title="Irk Bilinmiyor"><i class="fa-solid fa-circle"></i></span>`;
+                        nationBadge = `<span class="text-slate-500 font-black text-xs ml-2" title="Bilinmiyor: ${bot.WebNation}"><i class="fa-solid fa-circle"></i></span>`;
                     }
                 }
 
@@ -1535,8 +1305,6 @@
                     const match = webPremium.match(/\(([^)]+)\)/);
                     if (match) webPremium = match[1];
                 }
-                
-                // KALAN KELİMESİNİ SİLEN KOD BURADA
                 webPremium = webPremium.replace(/Kalan\s+/ig, '').trim();
 
                 const webMaterial = bot.WebMaterial || "";
@@ -1545,129 +1313,127 @@
                     const mats = webMaterial.split(/\s+/).filter(m => m.trim() !== "");
                     if (mats.length > 0) {
                         materialHTML = mats.map(mat => {
-                            if (mat.startsWith('D:')) return `<span class="bg-[#0ea5e9] text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">${mat}</span>`;
-                            if (mat.startsWith('P:')) return `<span class="bg-[#f97316] text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">${mat}</span>`;
-                            if (mat.startsWith('L:')) return `<span class="bg-[#22c55e] text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">${mat}</span>`;
-                            return `<span class="bg-slate-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">${mat}</span>`;
-                        }).join('');
+                            if (mat.startsWith('D:')) return `<span class="bg-[#0ea5e9] text-white px-2.5 py-0.5 rounded-full text-[10px] font-bold shadow-md">${mat}</span>`;
+                            if (mat.startsWith('P:')) return `<span class="bg-[#f97316] text-white px-2.5 py-0.5 rounded-full text-[10px] font-bold shadow-md">${mat}</span>`;
+                            if (mat.startsWith('L:')) return `<span class="bg-[#22c55e] text-white px-2.5 py-0.5 rounded-full text-[10px] font-bold shadow-md">${mat}</span>`;
+                            return `<span class="bg-slate-600 text-white px-2.5 py-0.5 rounded-full text-[10px] font-bold shadow-md">${mat}</span>`;
+                        }).join(' ');
                     }
                 }
 
                 let numericCoin = parseInt(webCoinStr.toString().replace(/[^0-9]/g, '')) || 0;
                 totalCoinValue += numericCoin;
 
-                let groupTagsHTML = bot._groupsArray.map(g => `<span class="bg-blue-900/40 border border-blue-700/50 text-blue-300 text-[10px] px-2 py-0.5 rounded font-bold">${g}</span>`).join(' ');
+                let groupTagsHTML = bot._groupsArray.map(g => `<span class="bg-blue-950/60 border border-blue-900/30 text-blue-400 text-[9px] px-2 py-0.5 rounded font-black">${g}</span>`).join(' ');
                 let isSelected = selectedBotKeys.has(fullKey);
 
                 if (currentViewMode === 'grid') {
-                    const ownerTag = currentUserRole === "admin" ? `<div class="absolute top-0 left-0 bg-purple-600 text-white text-[10px] font-bold px-2 py-1 rounded-br-lg z-10 shadow">👤 ${bot._owner}</div>` : "";
+                    const ownerTag = currentUserRole === "admin" ? `<div class="absolute top-0 left-0 bg-purple-600 text-white text-[10px] font-bold px-2 py-1 rounded-br-xl z-10 shadow">👤 ${bot._owner}</div>` : "";
                     
                     let borderAndGlow = "";
                     let opacityClass = isDead ? "opacity-75 grayscale-[20%]" : "";
                     let onlinePing = "";
 
                     if (isSelected) {
-                        borderAndGlow = "border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]";
+                        borderAndGlow = "border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)] bg-slate-900/90";
                     } else if (statusCode === "ONLINE") {
-                        borderAndGlow = "border-green-500/40 shadow-[0_0_15px_rgba(34,197,94,0.1)] hover:shadow-[0_0_20px_rgba(34,197,94,0.2)] hover:border-green-400/60";
+                        borderAndGlow = "border-green-500/30 shadow-[0_0_10px_rgba(34,197,94,0.05)] hover:shadow-[0_0_15px_rgba(34,197,94,0.15)] hover:border-green-400/50";
                         onlinePing = `<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>`;
                     } else if (isDead) {
-                        borderAndGlow = "border-red-900/50 shadow-none";
+                        borderAndGlow = "border-red-950/40 shadow-none";
                     } else {
-                        borderAndGlow = "border-slate-700 hover:border-slate-500";
+                        borderAndGlow = "border-slate-800 hover:border-slate-700";
                     }
 
                     const card = document.createElement('div');
-                    // FLEX COL YAPIYORUZ Kİ FOOTER ŞERİDİ EN ALTA YAPIŞSIN
-                    card.className = `bot-card bg-slate-800 rounded-2xl overflow-hidden relative border-2 flex flex-col transition-all duration-300 ${borderAndGlow} ${opacityClass}`;
+                    card.className = `bot-card bg-slate-900/40 rounded-2xl overflow-hidden relative border-2 flex flex-col transition-all duration-300 ${borderAndGlow} ${opacityClass}`;
+                    card.style.cursor = 'pointer';
+                    // Kart tıklanarak seçilebilir (Aksiyon butonlarına tıklama hariç)
+                    card.setAttribute('onclick', `if(!event.target.closest('button') && !event.target.closest('input')) toggleBotSelection('${fullKey}')`);
 
                     card.innerHTML = `
-                        <!-- Üst Kalın Renk Çizgisi -->
-                        <div class="h-2 w-full absolute top-0 left-0" style="background-color: ${displayColor}"></div>
+                        <div class="h-1.5 w-full absolute top-0 left-0" style="background-color: ${displayColor}"></div>
                         ${ownerTag}
 
-                        <!-- ANA KART İÇERİĞİ -->
+                        <!-- ANA KART ICERIGI -->
                         <div class="p-4 flex-grow flex flex-col relative mt-2 pb-3">
-                            <!-- Header: Hesap Adı & Aksiyon Butonları -->
                             <div class="flex justify-between items-start mb-2">
                                 <div class="flex flex-col max-w-[65%]">
-                                    <h3 class="text-xl font-black text-white tracking-wide truncate flex items-center" title="${bot.Account || bot.MachineName}">
-                                        <i class="fa-solid fa-desktop text-slate-400 text-lg mr-2"></i> ${bot.Account || bot.MachineName}
+                                    <h3 class="text-lg font-black text-white tracking-wide truncate flex items-center" title="${bot.Account || bot.MachineName}">
+                                        <i class="fa-solid fa-desktop text-slate-500 text-sm mr-2"></i> ${bot.Account || bot.MachineName}
                                     </h3>
-                                    <div class="mt-2">
-                                        <span class="px-3 py-1 rounded-md text-xs font-black uppercase tracking-wider bg-slate-900 text-slate-200 border border-slate-700 shadow-inner">
+                                    <div class="mt-1.5">
+                                        <span class="px-2.5 py-0.5 rounded bg-slate-950 text-slate-400 border border-slate-800 text-[10px] font-black uppercase tracking-wider shadow-inner">
                                             ${bot.Server || 'SERVER YOK'}
                                         </span>
                                     </div>
                                 </div>
                                 
-                                <!-- Aksiyon Toolbar'ı -->
-                                <div class="flex space-x-1 items-center bg-slate-900/60 p-1.5 rounded-lg border border-slate-700/50 shadow-md">
-                                    <input type="checkbox" id="cb_${fullKey}" class="custom-checkbox w-5 h-5 ml-1 mr-1 rounded appearance-none bg-slate-800 border border-slate-500 outline-none cursor-pointer transition-colors" onclick="toggleBotSelection('${fullKey}')" ${isSelected ? 'checked' : ''}>
-                                    <div class="h-5 w-px bg-slate-700 mx-1"></div>
-                                    <button onclick="openGroupManageModal('${bot._owner}', '${bot._key}', '${bot.Account || bot.MachineName}')" class="text-slate-400 hover:text-green-400 transition-colors p-1.5" title="Grupları Yönet"><i class="fa-solid fa-tags text-sm"></i></button>
-                                    <button onclick="openCommandModal('${bot._owner}', '${bot._key}', '${bot.Account}', '${bot.Server}')" class="text-slate-400 hover:text-blue-400 transition-colors p-1.5" title="Komut Gönder"><i class="fa-solid fa-terminal text-sm"></i></button>
-                                    <button onclick="deleteBot('${bot._owner}', '${bot._key}', '${bot.Account || bot.MachineName}')" class="text-slate-400 hover:text-red-400 transition-colors p-1.5" title="Listeden Kaldır"><i class="fa-solid fa-trash text-sm"></i></button>
+                                <!-- Aksiyon Buton Grubu (Tekil Seçim Checkbox'ı kaldırıldı) -->
+                                <div class="flex space-x-1 items-center bg-slate-950/80 p-1 rounded-lg border border-slate-800 shadow-md" onclick="event.stopPropagation()">
+                                    <button onclick="openGroupManageModal('${bot._owner}', '${bot._key}', '${bot.Account || bot.MachineName}')" class="text-slate-500 hover:text-green-400 transition-colors p-1" title="Grup Ekle"><i class="fa-solid fa-tag text-xs"></i></button>
+                                    <button onclick="openCommandModal('${bot._owner}', '${bot._key}', '${bot.Account}', '${bot.Server}')" class="text-slate-500 hover:text-blue-400 transition-colors p-1" title="Komut Gönder"><i class="fa-solid fa-terminal text-xs"></i></button>
+                                    <button onclick="deleteBot('${bot._owner}', '${bot._key}', '${bot.Account || bot.MachineName}')" class="text-slate-500 hover:text-red-400 transition-colors p-1" title="Sil"><i class="fa-solid fa-trash text-xs"></i></button>
                                 </div>
                             </div>
 
-                            <!-- Kutu İçinde Kutu (Karakter Bilgileri) -->
-                            <div class="bg-slate-900/80 rounded-xl p-4 mt-3 border border-slate-700/50 shadow-inner flex flex-col gap-3">
+                            <!-- Karakter Kapsayıcı Kutusu -->
+                            <div class="bg-slate-950/60 rounded-xl p-3 mt-2.5 border border-slate-850 shadow-inner flex flex-col gap-2.5">
                                 
-                                <!-- Char Name & Coin ROW -->
-                                <div class="flex justify-between items-center border-b border-slate-700/50 pb-3">
-                                    <div class="text-lg font-black text-white truncate flex items-center pr-2">
-                                        <i class="fa-solid fa-user-ninja text-purple-400 mr-2 text-base"></i>${webCharName} ${nationBadge}
+                                <!-- Char Name & COIN ROW -->
+                                <div class="flex justify-between items-center border-b border-slate-900/50 pb-2">
+                                    <div class="text-sm font-black text-white truncate flex items-center pr-2">
+                                        <i class="fa-solid fa-user-ninja text-purple-400 mr-2 text-xs"></i>${webCharName} ${nationBadge}
                                     </div>
-                                    <div class="text-sm font-bold text-yellow-500 whitespace-nowrap px-1 rounded">
-                                        <i class="fa-solid fa-coins mr-1 opacity-80 text-[13px]"></i>${webCoinStr}
+                                    <div class="text-xs font-bold text-yellow-500 whitespace-nowrap px-1 rounded">
+                                        <i class="fa-solid fa-coins mr-1 opacity-80 text-[11px]"></i>${webCoinStr}
                                     </div>
                                 </div>
                                 
-                                <!-- Target & Premium ROW -->
-                                <div class="flex justify-between items-center text-sm font-bold text-slate-300">
-                                    <div class="flex items-center truncate max-w-[50%]" title="Hedef (Target)">
-                                        <i class="fa-solid fa-crosshairs text-red-400 w-5 text-center mr-1"></i>
-                                        <span class="truncate">${webTarget}</span>
+                                <!-- Target & Premium -->
+                                <div class="flex justify-between items-center text-xs font-bold text-slate-400">
+                                    <div class="flex items-center truncate max-w-[50%]" title="Target (Hedef)">
+                                        <i class="fa-solid fa-crosshairs text-red-500/80 w-4.5 text-center mr-1"></i>
+                                        <span class="truncate text-[11px]">${webTarget}</span>
                                     </div>
                                     <div class="flex items-center justify-end text-yellow-500" title="Premium Süresi">
-                                        <i class="fa-solid fa-crown w-5 text-center mr-1"></i>
-                                        <span class="truncate">${webPremium}</span>
+                                        <i class="fa-solid fa-crown w-4.5 text-center mr-1 text-[11px]"></i>
+                                        <span class="truncate text-[11px] font-black">${webPremium}</span>
                                     </div>
                                 </div>
 
-                                <!-- Materials ROW -->
-                                <div class="flex flex-wrap gap-2 items-center mt-1">
-                                    <i class="fa-solid fa-box-open text-emerald-500 w-5 text-center mr-1" title="Materyaller"></i>
-                                    ${materialHTML}
+                                <!-- Materials -->
+                                <div class="flex flex-wrap gap-1 items-center">
+                                    <i class="fa-solid fa-box-open text-emerald-500 w-4.5 text-center mr-1 text-xs" title="Materyaller"></i>
+                                    <div class="flex flex-wrap gap-1">${materialHTML}</div>
                                 </div>
                             </div>
 
-                            <!-- Etiketler/Gruplar -->
-                            <div class="flex flex-wrap gap-1 mt-3 min-h-[18px]">
+                            <!-- Gruplar / Etiketler -->
+                            <div class="flex flex-wrap gap-1 mt-2.5 min-h-[16px]">
                                 ${groupTagsHTML}
                             </div>
 
-                            <!-- YENİ DÜZEN: Sadece Durum Çubuğu -->
-                            <div class="mt-auto pt-4">
-                                <div class="flex items-center gap-2.5 bg-slate-900/80 px-3 py-2.5 rounded-lg border border-slate-700/50 shadow-md w-full overflow-hidden">
-                                    <div class="relative flex h-3.5 w-3.5 shrink-0">
+                            <!-- Durum Çubuğu -->
+                            <div class="mt-auto pt-3">
+                                <div class="flex items-center gap-2 bg-slate-950/80 px-2.5 py-2 rounded-lg border border-slate-900 shadow-md w-full overflow-hidden">
+                                    <div class="relative flex h-2.5 w-2.5 shrink-0">
                                       ${onlinePing}
-                                      <span class="relative inline-flex rounded-full h-3.5 w-3.5" style="background-color: ${displayColor}"></span>
+                                      <span class="relative inline-flex rounded-full h-2.5 w-2.5" style="background-color: ${displayColor}"></span>
                                     </div>
-                                    <span class="text-sm font-black truncate tracking-wide flex-grow" style="color: ${displayColor}" title="${displayStatus}">${displayStatus}</span>
+                                    <span class="text-xs font-black truncate tracking-wide flex-grow" style="color: ${displayColor}" title="${displayStatus}">${displayStatus}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- YENİ DÜZEN: KARTIN EN ALTINDAKİ BİLGİ ŞERİDİ (PC ADI & SAAT) -->
-                        <div class="bg-slate-900/60 border-t border-slate-700/50 px-4 py-2.5 flex justify-between items-center text-[11px] text-slate-400 font-bold mt-auto shrink-0">
-                            <div class="flex items-center gap-2 truncate pr-2" title="Makine Adı">
-                                <i class="fa-solid fa-microchip opacity-70 text-xs"></i>
+                        <!-- ALT BİLGİ ŞERİDİ (PC ADI & SAAT) -->
+                        <div class="bg-slate-950/40 border-t border-slate-900/60 px-4 py-2 flex justify-between items-center text-[10px] text-slate-500 font-bold mt-auto shrink-0">
+                            <div class="flex items-center gap-1.5 truncate pr-2" title="Makine Adı">
+                                <i class="fa-solid fa-microchip opacity-50"></i>
                                 <span class="truncate">${bot.MachineName || 'PC'}</span>
                             </div>
-                            <div class="flex items-center gap-2 shrink-0" title="Son Güncelleme">
-                                <i class="fa-regular fa-clock opacity-70 text-xs"></i>
+                            <div class="flex items-center gap-1.5 shrink-0" title="Son Güncelleme">
+                                <i class="fa-regular fa-clock opacity-50"></i>
                                 <span>${isDead && bot.LastUpdate ? Math.floor(diffMinutes) + ' DK ÖNCE' : (bot.LastUpdate ? bot.LastUpdate.split(' ')[1] : '--:--')}</span>
                             </div>
                         </div>
@@ -1675,32 +1441,32 @@
                     gridDiv.appendChild(card);
                 } else {
                     tableHTML += `
-                        <tr class="border-b border-slate-700/50 table-row-hover transition-colors ${isDead ? 'opacity-60' : ''} ${isSelected ? 'bg-slate-800/80' : ''}">
-                            <td class="px-4 py-2 text-center w-10">
-                                <input type="checkbox" id="cb_row_${fullKey}" class="custom-checkbox w-4 h-4 rounded appearance-none bg-slate-900 border border-slate-600 outline-none cursor-pointer transition-colors" onclick="toggleBotSelection('${fullKey}')" ${isSelected ? 'checked' : ''}>
+                        <tr class="border-b border-slate-800/60 table-row-hover transition-colors ${isDead ? 'opacity-60' : ''} ${isSelected ? 'bg-slate-900/50' : ''}">
+                            <td class="px-4 py-2.5 text-center w-10">
+                                <input type="checkbox" id="cb_row_${fullKey}" class="custom-checkbox w-4.5 h-4.5 rounded appearance-none bg-slate-900 border border-slate-700 outline-none cursor-pointer transition-colors" onclick="toggleBotSelection('${fullKey}')" ${isSelected ? 'checked' : ''}>
                             </td>
-                            <td class="px-4 py-2">
+                            <td class="px-4 py-2.5">
                                 <div class="font-bold text-white flex items-center">
                                     <div class="w-2 h-2 rounded-full mr-2" style="background-color: ${displayColor}"></div>
                                     ${bot.Account || bot.MachineName}
                                 </div>
-                                <div class="text-[10px] text-slate-400 mt-1">${bot.Server || '-'}</div>
+                                <div class="text-[10px] text-slate-500 mt-0.5">${bot.Server || '-'}</div>
                             </td>
-                            <td class="px-4 py-2 font-bold text-purple-400 text-xs">${webCharName} ${nationBadge}</td>
-                            <td class="px-4 py-2">
+                            <td class="px-4 py-2.5 font-bold text-purple-400 text-xs">${webCharName} ${nationBadge}</td>
+                            <td class="px-4 py-2.5">
                                 <div class="text-xs font-bold" style="color: ${displayColor}" title="${displayStatus}"><i class="fa-solid ${icon} mr-1"></i>${statusCode}</div>
                                 <div class="text-[10px] text-slate-500">${isDead && bot.LastUpdate ? Math.floor(diffMinutes) + ' Dk' : (bot.LastUpdate ? bot.LastUpdate.split(' ')[1] : '--:--')}</div>
                             </td>
-                            <td class="px-4 py-2 text-right font-bold text-yellow-500 text-sm whitespace-nowrap">${webCoinStr}</td>
-                            <td class="px-4 py-2 text-center text-red-300 text-xs font-medium truncate max-w-[120px]" title="${webTarget}">${webTarget}</td>
-                            <td class="px-4 py-2 text-center">
+                            <td class="px-4 py-2.5 text-right font-bold text-yellow-500 text-sm whitespace-nowrap">${webCoinStr}</td>
+                            <td class="px-4 py-2.5 text-center text-red-300 text-xs font-medium truncate max-w-[120px]" title="${webTarget}">${webTarget}</td>
+                            <td class="px-4 py-2.5 text-center">
                                 <div class="flex justify-center items-center gap-1">${materialHTML}</div>
                             </td>
-                            <td class="px-4 py-2 text-center text-yellow-500 text-[11px] font-medium whitespace-nowrap">${webPremium}</td>
-                            <td class="px-4 py-2 text-center">
-                                <button onclick="openGroupManageModal('${bot._owner}', '${bot._key}', '${bot.Account || bot.MachineName}')" class="text-green-400 hover:text-green-300 bg-slate-800 rounded p-1.5 mx-0.5 border border-slate-600" title="Grup Ekle"><i class="fa-solid fa-plus"></i></button>
-                                <button onclick="openCommandModal('${bot._owner}', '${bot._key}', '${bot.Account}', '${bot.Server}')" class="text-blue-400 hover:text-blue-300 bg-slate-800 rounded p-1.5 mx-0.5 border border-slate-600" title="Komut"><i class="fa-solid fa-gear"></i></button>
-                                <button onclick="deleteBot('${bot._owner}', '${bot._key}', '${bot.Account || bot.MachineName}')" class="text-red-400 hover:text-red-300 bg-slate-800 rounded p-1.5 mx-0.5 border border-slate-600" title="Sil"><i class="fa-solid fa-trash"></i></button>
+                            <td class="px-4 py-2.5 text-center text-yellow-500 text-[11px] font-medium whitespace-nowrap">${webPremium}</td>
+                            <td class="px-4 py-2.5 text-center">
+                                <button onclick="openGroupManageModal('${bot._owner}', '${bot._key}', '${bot.Account || bot.MachineName}')" class="text-green-400 hover:text-green-300 bg-slate-900 rounded p-1.5 mx-0.5 border border-slate-800" title="Grup Ekle"><i class="fa-solid fa-plus"></i></button>
+                                <button onclick="openCommandModal('${bot._owner}', '${bot._key}', '${bot.Account}', '${bot.Server}')" class="text-blue-400 hover:text-blue-300 bg-slate-900 rounded p-1.5 mx-0.5 border border-slate-800" title="Komut"><i class="fa-solid fa-gear"></i></button>
+                                <button onclick="deleteBot('${bot._owner}', '${bot._key}', '${bot.Account || bot.MachineName}')" class="text-red-400 hover:text-red-300 bg-slate-900 rounded p-1.5 mx-0.5 border border-slate-800" title="Sil"><i class="fa-solid fa-trash"></i></button>
                             </td>
                         </tr>
                     `;
@@ -1745,11 +1511,11 @@
                 tbody.innerHTML = '';
                 for (const [userId, details] of Object.entries(data)) {
                     const roleBadge = details.role === 'admin' 
-                        ? '<span class="bg-purple-900/50 text-purple-400 px-2 py-1 rounded text-xs border border-purple-700">Admin</span>'
-                        : '<span class="bg-slate-700 text-slate-300 px-2 py-1 rounded text-xs border border-slate-600">Kullanıcı</span>';
+                        ? '<span class="bg-purple-950 text-purple-400 px-2 py-0.5 rounded text-[10px] border border-purple-800">Admin</span>'
+                        : '<span class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-[10px] border border-slate-700">Kullanıcı</span>';
                     const tr = document.createElement('tr');
-                    tr.className = "border-b border-slate-700/50 hover:bg-slate-800/50 transition-colors";
-                    tr.innerHTML = `<td class="px-4 py-3 font-bold text-white">${userId}</td><td class="px-4 py-3 font-mono text-slate-400">${details.password}</td><td class="px-4 py-3">${roleBadge}</td><td class="px-4 py-3 text-right"><button onclick="deleteUser('${userId}')" class="text-red-400 hover:text-red-300 px-2 py-1 bg-red-900/30 rounded border border-red-800/50"><i class="fa-solid fa-trash"></i></button></td>`;
+                    tr.className = "border-b border-slate-800 hover:bg-slate-900/50 transition-colors";
+                    tr.innerHTML = `<td class="px-4 py-3 font-bold text-white">${userId}</td><td class="px-4 py-3 font-mono text-slate-400">${details.password}</td><td class="px-4 py-3">${roleBadge}</td><td class="px-4 py-3 text-right"><button onclick="deleteUser('${userId}')" class="text-red-400 hover:text-red-300 px-2 py-1 bg-red-950/30 rounded border border-red-900/50"><i class="fa-solid fa-trash"></i></button></td>`;
                     tbody.appendChild(tr);
                 }
             } catch (error) { tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-red-400">Hata: ${error}</td></tr>`; }
@@ -1779,7 +1545,7 @@
         }
 
         async function deleteBot(owner, key, accountName) {
-            if(!confirm(`'${accountName}' isimli karakteri (ve varsa alt karakterlerini) listeden kaldırmak istediğinize emin misiniz?\n\nNot: Eğer VDS arka planda hala çalışıyorsa, bot bir sonraki veri gönderişinde listeye geri döner. Bu buton genellikle "Bağlantısı Kopan" eski kayıtları temizlemek içindir.`)) return;
+            if(!confirm(`'${accountName}' isimli karakteri listeden kaldırmak istediğinize emin misiniz?\n\nNot: Eğer VDS arka planda hala aktifse, bot bir sonraki veri gönderişinde listeye otomatik olarak geri döner.`)) return;
             try {
                 await apiFetch(`${FIREBASE_URL}Bots/${owner}/${key}.json`, { method: 'DELETE' });
                 delete allBotsData[`${owner}___${key}`]; delete allBotsData[key]; 
@@ -1792,52 +1558,13 @@
                 const lastUpd = parseCustomDate(bot.LastUpdate || "01.01.2000 00:00:00");
                 return (new Date() - lastUpd) / 1000 / 60 > 4; 
             });
-            if(offlineBots.length === 0) { alert("Şu anda temizlenecek 'Bağlantısı Kopmuş' hiçbir bot bulunmuyor. Tüm botlar aktif!"); return; }
+            if(offlineBots.length === 0) { alert("Şu anda temizlenecek 'Bağlantısı Kopmuş' hiçbir bot bulunmuyor."); return; }
             if(!confirm(`Bağlantısı kopmuş (Ölü) durumdaki toplam ${offlineBots.length} bot veritabanından kalıcı olarak temizlenecek. Onaylıyor musunuz?`)) return;
             try {
                 let updates = {}; offlineBots.forEach(bot => { updates[`Bots/${bot._owner}/${bot._key}`] = null; });
                 await apiFetch(`${FIREBASE_URL}.json`, { method: 'PATCH', body: JSON.stringify(updates) });
-                fetchBotData(); alert(`✅ ${offlineBots.length} adet bağlantısı kopmuş bot listeden başarıyla temizlendi!`);
+                fetchBotData(); alert(`✅ ${offlineBots.length} adet bağlantısı kopmuş bot başarıyla temizlendi!`);
             } catch (e) { alert("Temizleme sırasında hata oluştu: " + e); }
-        }
-
-        async function fetchWithRetry(url, options, maxRetries = 5) {
-            const delays = [1000, 2000, 4000, 8000, 16000];
-            for (let i = 0; i < maxRetries; i++) {
-                try {
-                    const response = await fetch(url, options);
-                    if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-                    return await response.json();
-                } catch (error) {
-                    if (i === maxRetries - 1) throw error;
-                    await new Promise(resolve => setTimeout(resolve, delays[i]));
-                }
-            }
-        }
-
-        function openAiAnalysisModal() {
-            if (filteredBotsList.length === 0) { alert("Analiz edilecek bot bulunmuyor!"); return; }
-            document.getElementById('aiAnalysisModal').classList.remove('hidden'); analyzeFleet();
-        }
-        function closeAiAnalysisModal() { document.getElementById('aiAnalysisModal').classList.add('hidden'); }
-
-        async function analyzeFleet() {
-            const aiContentArea = document.getElementById('aiContentArea');
-            aiContentArea.innerHTML = `<div class="flex flex-col items-center justify-center py-10 space-y-4"><i class="fa-solid fa-circle-notch fa-spin text-4xl text-purple-500"></i><p class="text-purple-300 animate-pulse text-center">Gemini Yapay Zekası analiz ediyor...</p></div>`;
-            try {
-                let total = filteredBotsList.length; let statusCounts = {}; let serverCounts = {};
-                filteredBotsList.forEach(bot => {
-                    statusCounts[bot.status] = (statusCounts[bot.status] || 0) + 1;
-                    serverCounts[bot.server] = (serverCounts[bot.server] || 0) + 1;
-                });
-                const promptData = `Toplam Bot: ${total}\nDurum Dağılımı: ${JSON.stringify(statusCounts)}\nSunucu Dağılımı: ${JSON.stringify(serverCounts)}`;
-                const systemPrompt = "Kısa bir filo analizi yap. HTML listeleri kullan (<ul>, <li>). Uyarılacak durumları <b> ile belirt.";
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-                const payload = { contents: [{ parts: [{ text: promptData }] }], systemInstruction: { parts: [{ text: systemPrompt }] } };
-                const result = await fetchWithRetry(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-                if (result.candidates?.[0]?.content?.parts?.[0]?.text) aiContentArea.innerHTML = result.candidates[0].content.parts[0].text;
-                else throw new Error("Boş yanıt.");
-            } catch (error) { aiContentArea.innerHTML = `<div class="text-center py-6 text-red-400">Analiz Tamamlanamadı: API Ayarınızı kontrol edin.</div>`; }
         }
     </script>
 </body>
