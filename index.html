@@ -157,12 +157,12 @@
                     <i class="fa-solid fa-users-gear mb-1"></i> Admin
                 </button>
 
-                <!-- YENİ: MANUEL VERİ ÇEKME BUTONU -->
+                <!-- MANUEL VERİ ÇEKME BUTONU -->
                 <button id="manualFetchBtn" onclick="manualTriggerWebData()" class="bg-sky-600 hover:bg-sky-500 px-4 py-2 rounded-lg transition-colors text-sm flex flex-col items-center justify-center font-bold text-white shadow-lg shadow-sky-900/50 h-[50px]">
                     <i class="fa-solid fa-cloud-arrow-down mb-1"></i> Web'den Çek
                 </button>
 
-                <!-- YENİ: VERİ KÖPRÜSÜ (ENTEGRASYON) BUTONU -->
+                <!-- VERİ KÖPRÜSÜ (ENTEGRASYON) BUTONU -->
                 <button onclick="openDataBridgeModal()" class="bg-amber-600 hover:bg-amber-500 px-4 py-2 rounded-lg transition-colors text-sm flex flex-col items-center justify-center font-bold text-white shadow-lg shadow-amber-900/50 h-[50px]">
                     <i class="fa-solid fa-bridge-water mb-1"></i> Veri Köprüsü
                 </button>
@@ -186,7 +186,7 @@
         <!-- Arama, Filtreleme ve Toplu İşlem Menüsü -->
         <div class="mb-6 flex flex-wrap gap-4 items-center justify-between bg-slate-800/50 p-3 rounded-lg border border-slate-700">
             <div class="flex flex-wrap gap-4 items-center flex-grow">
-                <!-- Select All (Tümünü Seç) Yeni Eklendi -->
+                <!-- Select All (Tümünü Seç) -->
                 <label class="flex items-center cursor-pointer bg-slate-800 border border-slate-600 px-4 py-3 rounded-lg hover:bg-slate-700 transition relative">
                     <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)" class="custom-checkbox w-5 h-5 rounded appearance-none bg-slate-900 border border-slate-600 outline-none cursor-pointer">
                     <span class="ml-2 text-sm font-bold text-white select-none whitespace-nowrap">Seç <span id="selectedCount" class="text-blue-400 text-xs ml-1">(0)</span></span>
@@ -263,7 +263,7 @@
 
     <!-- ================= MODALLAR ================= -->
 
-    <!-- YENİ: VERİ KÖPRÜSÜ (DATA BRIDGE) MODALI -->
+    <!-- VERİ KÖPRÜSÜ (DATA BRIDGE) MODALI -->
     <div id="dataBridgeModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="glass-panel p-6 rounded-2xl max-w-4xl w-full border border-amber-500 shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
             <div class="absolute top-0 left-0 w-full h-1 bg-amber-500"></div>
@@ -586,7 +586,7 @@
     <!-- JAVASCRIPT KODLARI -->
     <script>
         // --- AYARLAR ---
-        const FIREBASE_URL = "https://gozcusistemi.xyz/"; // API Adresi - Çift tanım düzeltildi.
+        const FIREBASE_URL = "https://gozcusistemi.xyz/"; 
         const PANEL_API_KEY = "GozcuGizliAnahtar123"; 
         const apiKey = ""; 
 
@@ -621,7 +621,7 @@
         let selectedBotKeys = new Set(); 
 
         const colorMap = { "green": "#22c55e", "red": "#ef4444", "yellow": "#eab308", "orange": "#f97316", "purple": "#a855f7", "blue": "#3b82f6", "black": "#334155", "gray": "#6b7280" };
-        const iconMap = { "ONLINE": "fa-play", "QUEUE": "fa-hourglass-half", "LAUNCHER": "fa-rocket", "OTP_ERROR": "fa-lock", "NPC_ERROR": "fa-triangle-exclamation", "JAIL": "fa-gavel", "BLACKLIST": "fa-skull-crossbones", "TIME_ERROR": "fa-clock", "RESTRICTED_WAIT": "fa-ban", "RESTRICTED_OPEN": "fa-eye-slash", "OFFLINE": "fa-plug-circle-xmark", "DELAY": "fa-stopwatch", "VIP_PASS": "fa-ticket", "RESTARTING": "fa-skull-crossbones", "PASSIVE": "fa-pause" };
+        const iconMap = { "ONLINE": "fa-play", "QUEUE": "fa-hourglass-half", "LAUNCHER": "fa-rocket", "OTP_ERROR": "fa-lock", "NPC_ERROR": "fa-triangle-exclamation", "JAIL": "fa-gavel", "BLACKLIST": "fa-skull-crossbones", "TIME_ERROR": "fa-clock", "RESTRICTED_WAIT": "fa-ban", "RESTRICTED_OPEN": "fa-eye-slash", "OFFLINE": "fa-plug-circle-xmark", "DELAY": "fa-stopwatch", "VIP_PASS": "fa-ticket", "RESTARTING": "fa-skull-crossbones", "PAUSE_BOT": "fa-pause" };
 
         window.onload = function() { checkSession(); };
 
@@ -723,7 +723,6 @@
             fetchBotData();
             refreshInterval = setInterval(fetchBotData, 5000);
             
-            // YENİ: Otomatik Veri Çekme (Panele ilk girildiğinde 1 kez tetikler)
             autoTriggerWebData();
         }
 
@@ -745,17 +744,14 @@
             selectedBotKeys.clear();
         }
 
-        // ================= YENİ: MANUEL VE OTOMATİK VERİ ÇEKME TETİKLEYİCİSİ =================
         async function triggerDataBridge() {
             if (!currentMusteriID) return false;
             
-            // Admin başka bir müşteriye bakıyorsa onun verisini çekelim, yoksa kendi verimizi
             const targetId = (currentUserRole === "admin" && document.getElementById('adminViewFilter').value !== "ALL") 
                                 ? document.getElementById('adminViewFilter').value 
                                 : currentMusteriID;
 
             try {
-                // VDS API mize /api/tetikle/MUSTERI_ID adresiyle istek atıyoruz
                 const triggerUrl = `${FIREBASE_URL}api/tetikle/${targetId}?key=${PANEL_API_KEY}`;
                 const response = await fetch(triggerUrl);
                 const data = await response.json();
@@ -781,7 +777,6 @@
             }
             
             if(success) {
-                // Başarılı olursa ekranı hemen yenile
                 fetchBotData();
                 alert("✅ Web sitesinden veriler başarıyla çekildi ve güncellendi!");
             } else {
@@ -791,35 +786,29 @@
 
         function autoTriggerWebData() {
             console.log("Otomatik veri çekme başlatıldı (1 kere tetiklenecek)");
-            triggerDataBridge(); // Sadece ilk girişte 1 kez çalışır.
+            triggerDataBridge(); 
         }
-        // ======================================================================================
 
-        // ================= YENİ: VERİ KÖPRÜSÜ (ENTEGRASYON) FONKSİYONLARI =================
         async function openDataBridgeModal() {
             const listContainer = document.getElementById('bridgeBotList');
             listContainer.innerHTML = `<div class="text-center py-8 text-slate-500"><i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2"></i><br>Ayarlar ve botlar yükleniyor...</div>`;
             document.getElementById('dataBridgeModal').classList.remove('hidden');
             
             try {
-                // Önceden kaydedilmiş ayarları çek
                 const res = await apiFetch(`${FIREBASE_URL}Users/${currentMusteriID}/BridgeConfig.json`);
                 let config = {};
                 if (res.ok) config = await res.json() || {};
 
-                // Inputları doldur
                 document.getElementById('bridgeUrl').value = config.targetUrl || "https://knfbx.com";
                 document.getElementById('bridgeEmail').value = config.email || "";
                 document.getElementById('bridgePass').value = config.password || "";
                 
-                // Veri tipleri (Eğer daha önce hiç ayar yapılmamışsa varsayılan olarak hepsi true gelsin)
                 document.getElementById('fetch_Coin').checked = config.fetchCoin !== false;
                 document.getElementById('fetch_Premium').checked = config.fetchPremium !== false;
                 document.getElementById('fetch_CharName').checked = config.fetchCharName !== false;
                 document.getElementById('fetch_Target').checked = config.fetchTarget !== false;
                 document.getElementById('fetch_Material').checked = config.fetchMaterial !== false;
 
-                // Bot Listesini Oluştur
                 renderBridgeBotList(config.activeBots || null);
             } catch (e) {
                 listContainer.innerHTML = `<div class="text-center py-8 text-red-400">Ayarlar çekilirken bir hata oluştu.</div>`;
@@ -834,7 +823,6 @@
             const listContainer = document.getElementById('bridgeBotList');
             listContainer.innerHTML = '';
             
-            // Sadece bu müşterinin botlarını al
             const userBots = Object.values(allBotsData).filter(b => b._owner === currentMusteriID);
 
             if (userBots.length === 0) {
@@ -846,9 +834,7 @@
 
             userBots.forEach(bot => {
                 const botKey = bot._key;
-                // Eğer daha önce ayar yapılmamışsa hepsi seçili gelsin
                 const isChecked = savedActiveBots ? (savedActiveBots[botKey] === true) : true;
-                
                 let iconClass = bot.StatusCode === "ONLINE" ? "text-green-400" : "text-slate-500";
                 
                 listContainer.innerHTML += `
@@ -883,13 +869,11 @@
                 return;
             }
 
-            // Hangi botların seçildiğini topla
             const activeBots = {};
             document.querySelectorAll('.bridge-bot-cb').forEach(cb => {
                 if (cb.checked) activeBots[cb.value] = true;
             });
 
-            // Tam yapılandırma paketi
             const configPayload = {
                 targetUrl: targetUrl,
                 email: email,
@@ -921,8 +905,6 @@
                 btn.disabled = false;
             }
         }
-        // ================= VERİ KÖPRÜSÜ SONU =================
-
 
         async function fetchBotData() {
             try {
@@ -997,7 +979,6 @@
             }
         }
 
-        // --- GÖRÜNÜM VE SEÇİM ---
         function toggleViewMode() {
             currentViewMode = currentViewMode === 'grid' ? 'list' : 'grid';
             document.getElementById('viewModeIcon').className = currentViewMode === 'grid' ? 'fa-solid fa-list text-xl' : 'fa-solid fa-border-all text-xl';
@@ -1025,6 +1006,7 @@
             if (selectAllCb) {
                 selectAllCb.checked = (selectedBotKeys.size > 0 && selectedBotKeys.size === filteredBotsList.length);
             }
+            renderBots(); 
         }
 
         function updateSelectedCountUI() {
@@ -1074,7 +1056,6 @@
             renderBots();
         }
 
-        // --- DISCORD WEBHOOK ---
         function checkForDiscordAlerts(currentData, previousData) {
             const webhookUrl = localStorage.getItem('gozcu_discord_webhook');
             if (!webhookUrl || !webhookUrl.startsWith("http")) return;
@@ -1181,7 +1162,6 @@
             } catch(e) { return new Date(0); }
         }
 
-        // --- GRUPLAR ---
         function openNewGroupModal() {
             if (currentUserRole === "admin" && document.getElementById('adminViewFilter').value === "ALL") {
                 alert("Lütfen önce üst menüden grup ekleyeceğiniz müşteriyi seçin (Tümü seçiliyken grup eklenemez).");
@@ -1328,7 +1308,6 @@
             finally { btn.innerHTML = 'Seçilenlere Ekle <i class="fa-solid fa-check ml-2"></i>'; btn.disabled = false; }
         }
 
-        // --- UZAKTAN KOMUT MODALI ---
         function openCommandModal(botOwner, botKey, accountName, serverName) {
             selectedBotOwner = botOwner; selectedBotKey = botKey;
             document.getElementById('modalTargetName').innerText = `${accountName} (${serverName})`;
@@ -1439,7 +1418,7 @@
             finally { btn.innerHTML = 'GÖNDER <i class="fa-solid fa-paper-plane ml-2"></i>'; btn.disabled = false; }
         }
 
-        // --- 4. EKRANA ÇİZME VE FİLTRELEME ---
+        // ============================ KART RENDER İŞLEMLERİ ============================
         function renderBots() {
             const container = document.getElementById('botsContainer');
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
@@ -1543,9 +1522,11 @@
                 let nationBadge = "";
                 if (bot.WebNation) {
                     if (bot.WebNation.toLowerCase().includes("karus")) {
-                        nationBadge = `<span class="text-red-400 font-bold text-[10px] ml-1" title="Karus">🔴</span>`;
+                        nationBadge = `<span class="text-blue-500 font-black text-xs ml-2" title="Karus"><i class="fa-solid fa-circle"></i></span>`;
                     } else if (bot.WebNation.toLowerCase().includes("morad")) {
-                        nationBadge = `<span class="text-blue-400 font-bold text-[10px] ml-1" title="El Morad">🔵</span>`;
+                        nationBadge = `<span class="text-blue-500 font-black text-xs ml-2" title="El Morad"><i class="fa-solid fa-circle"></i></span>`;
+                    } else {
+                        nationBadge = `<span class="text-blue-500 font-black text-xs ml-2" title="Irk Bilinmiyor"><i class="fa-solid fa-circle"></i></span>`;
                     }
                 }
 
@@ -1554,17 +1535,20 @@
                     const match = webPremium.match(/\(([^)]+)\)/);
                     if (match) webPremium = match[1];
                 }
+                
+                // KALAN KELİMESİNİ SİLEN KOD BURADA
+                webPremium = webPremium.replace(/Kalan\s+/ig, '').trim();
 
                 const webMaterial = bot.WebMaterial || "";
-                let materialHTML = `<span class="text-slate-500">-</span>`;
+                let materialHTML = `<span class="text-slate-500 font-bold">-</span>`;
                 if (webMaterial && webMaterial !== "-") {
                     const mats = webMaterial.split(/\s+/).filter(m => m.trim() !== "");
                     if (mats.length > 0) {
                         materialHTML = mats.map(mat => {
-                            if (mat.startsWith('D:')) return `<span class="bg-[#0ea5e9] text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm">${mat}</span>`;
-                            if (mat.startsWith('P:')) return `<span class="bg-[#f97316] text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm">${mat}</span>`;
-                            if (mat.startsWith('L:')) return `<span class="bg-[#22c55e] text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm">${mat}</span>`;
-                            return `<span class="bg-slate-600 text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm">${mat}</span>`;
+                            if (mat.startsWith('D:')) return `<span class="bg-[#0ea5e9] text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">${mat}</span>`;
+                            if (mat.startsWith('P:')) return `<span class="bg-[#f97316] text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">${mat}</span>`;
+                            if (mat.startsWith('L:')) return `<span class="bg-[#22c55e] text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">${mat}</span>`;
+                            return `<span class="bg-slate-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">${mat}</span>`;
                         }).join('');
                     }
                 }
@@ -1572,58 +1556,120 @@
                 let numericCoin = parseInt(webCoinStr.toString().replace(/[^0-9]/g, '')) || 0;
                 totalCoinValue += numericCoin;
 
-                let groupTagsHTML = bot._groupsArray.map(g => `<span class="bg-blue-900/40 border border-blue-700/50 text-blue-300 text-[10px] px-2 py-0.5 rounded">${g}</span>`).join(' ');
+                let groupTagsHTML = bot._groupsArray.map(g => `<span class="bg-blue-900/40 border border-blue-700/50 text-blue-300 text-[10px] px-2 py-0.5 rounded font-bold">${g}</span>`).join(' ');
                 let isSelected = selectedBotKeys.has(fullKey);
 
                 if (currentViewMode === 'grid') {
                     const ownerTag = currentUserRole === "admin" ? `<div class="absolute top-0 left-0 bg-purple-600 text-white text-[10px] font-bold px-2 py-1 rounded-br-lg z-10 shadow">👤 ${bot._owner}</div>` : "";
-                    const card = document.createElement('div');
-                    card.className = `bot-card bg-slate-800 rounded-xl overflow-hidden relative border flex flex-col pt-1 ${isSelected ? 'border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'border-slate-700'}`;
+                    
+                    let borderAndGlow = "";
+                    let opacityClass = isDead ? "opacity-75 grayscale-[20%]" : "";
+                    let onlinePing = "";
 
-                    if(isDead) card.style.opacity = "0.6";
+                    if (isSelected) {
+                        borderAndGlow = "border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]";
+                    } else if (statusCode === "ONLINE") {
+                        borderAndGlow = "border-green-500/40 shadow-[0_0_15px_rgba(34,197,94,0.1)] hover:shadow-[0_0_20px_rgba(34,197,94,0.2)] hover:border-green-400/60";
+                        onlinePing = `<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>`;
+                    } else if (isDead) {
+                        borderAndGlow = "border-red-900/50 shadow-none";
+                    } else {
+                        borderAndGlow = "border-slate-700 hover:border-slate-500";
+                    }
+
+                    const card = document.createElement('div');
+                    // FLEX COL YAPIYORUZ Kİ FOOTER ŞERİDİ EN ALTA YAPIŞSIN
+                    card.className = `bot-card bg-slate-800 rounded-2xl overflow-hidden relative border-2 flex flex-col transition-all duration-300 ${borderAndGlow} ${opacityClass}`;
 
                     card.innerHTML = `
-                        <div class="h-1.5 w-full absolute top-0 left-0" style="background-color: ${displayColor}"></div>
+                        <!-- Üst Kalın Renk Çizgisi -->
+                        <div class="h-2 w-full absolute top-0 left-0" style="background-color: ${displayColor}"></div>
                         ${ownerTag}
-                        <div class="p-4 flex-grow flex flex-col relative mt-2">
-                            <div class="absolute top-0 right-0 flex space-x-1 z-10 items-center">
-                                <input type="checkbox" id="cb_${fullKey}" class="custom-checkbox w-5 h-5 mr-2 rounded appearance-none bg-slate-900 border border-slate-600 outline-none cursor-pointer transition-colors" onclick="toggleBotSelection('${fullKey}')" ${isSelected ? 'checked' : ''}>
-                                <button onclick="deleteBot('${bot._owner}', '${bot._key}', '${bot.Account || bot.MachineName}')" class="text-slate-400 hover:text-red-500 bg-slate-700/50 hover:bg-red-900/50 rounded p-1.5 transition-colors shadow" title="Listeden Kaldır"><i class="fa-solid fa-trash text-sm"></i></button>
-                                <button onclick="openGroupManageModal('${bot._owner}', '${bot._key}', '${bot.Account || bot.MachineName}')" class="text-slate-400 hover:text-white bg-slate-700/50 hover:bg-green-600 rounded p-1.5 transition-colors shadow" title="Grupları Yönet"><i class="fa-solid fa-plus text-sm"></i></button>
-                                <button onclick="openCommandModal('${bot._owner}', '${bot._key}', '${bot.Account}', '${bot.Server}')" class="text-slate-400 hover:text-white bg-slate-700/50 hover:bg-blue-600 rounded p-1.5 transition-colors shadow" title="Komut Gönder"><i class="fa-solid fa-gear"></i></button>
-                            </div>
 
-                            <div class="flex flex-col mb-3 pr-24 mt-1">
-                                <h3 class="text-lg font-bold text-white tracking-wide truncate" title="${bot.Account || bot.MachineName}">
-                                    <i class="fa-solid fa-user text-slate-500 text-sm mr-1"></i> ${bot.Account || bot.MachineName}
-                                </h3>
-                                <div class="mt-1">
-                                    <span class="px-2 py-0.5 rounded text-[11px] font-bold whitespace-nowrap bg-slate-900 text-slate-300 border border-slate-700 shadow-inner">${bot.Server || 'SERVER YOK'}</span>
+                        <!-- ANA KART İÇERİĞİ -->
+                        <div class="p-4 flex-grow flex flex-col relative mt-2 pb-3">
+                            <!-- Header: Hesap Adı & Aksiyon Butonları -->
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="flex flex-col max-w-[65%]">
+                                    <h3 class="text-xl font-black text-white tracking-wide truncate flex items-center" title="${bot.Account || bot.MachineName}">
+                                        <i class="fa-solid fa-desktop text-slate-400 text-lg mr-2"></i> ${bot.Account || bot.MachineName}
+                                    </h3>
+                                    <div class="mt-2">
+                                        <span class="px-3 py-1 rounded-md text-xs font-black uppercase tracking-wider bg-slate-900 text-slate-200 border border-slate-700 shadow-inner">
+                                            ${bot.Server || 'SERVER YOK'}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Aksiyon Toolbar'ı -->
+                                <div class="flex space-x-1 items-center bg-slate-900/60 p-1.5 rounded-lg border border-slate-700/50 shadow-md">
+                                    <input type="checkbox" id="cb_${fullKey}" class="custom-checkbox w-5 h-5 ml-1 mr-1 rounded appearance-none bg-slate-800 border border-slate-500 outline-none cursor-pointer transition-colors" onclick="toggleBotSelection('${fullKey}')" ${isSelected ? 'checked' : ''}>
+                                    <div class="h-5 w-px bg-slate-700 mx-1"></div>
+                                    <button onclick="openGroupManageModal('${bot._owner}', '${bot._key}', '${bot.Account || bot.MachineName}')" class="text-slate-400 hover:text-green-400 transition-colors p-1.5" title="Grupları Yönet"><i class="fa-solid fa-tags text-sm"></i></button>
+                                    <button onclick="openCommandModal('${bot._owner}', '${bot._key}', '${bot.Account}', '${bot.Server}')" class="text-slate-400 hover:text-blue-400 transition-colors p-1.5" title="Komut Gönder"><i class="fa-solid fa-terminal text-sm"></i></button>
+                                    <button onclick="deleteBot('${bot._owner}', '${bot._key}', '${bot.Account || bot.MachineName}')" class="text-slate-400 hover:text-red-400 transition-colors p-1.5" title="Listeden Kaldır"><i class="fa-solid fa-trash text-sm"></i></button>
                                 </div>
                             </div>
-                            
-                            <div class="flex justify-between items-center mb-2 bg-slate-900/50 p-2.5 rounded-lg border border-slate-700/50 shadow-inner">
-                                <div class="text-[13px] font-bold text-purple-400 truncate pr-2"><i class="fa-solid fa-user-ninja mr-1 opacity-70"></i>${webCharName} ${nationBadge}</div>
-                                <div class="text-[13px] font-extrabold text-yellow-400 whitespace-nowrap"><i class="fa-solid fa-coins mr-1 opacity-80"></i>${webCoinStr}</div>
+
+                            <!-- Kutu İçinde Kutu (Karakter Bilgileri) -->
+                            <div class="bg-slate-900/80 rounded-xl p-4 mt-3 border border-slate-700/50 shadow-inner flex flex-col gap-3">
+                                
+                                <!-- Char Name & Coin ROW -->
+                                <div class="flex justify-between items-center border-b border-slate-700/50 pb-3">
+                                    <div class="text-lg font-black text-white truncate flex items-center pr-2">
+                                        <i class="fa-solid fa-user-ninja text-purple-400 mr-2 text-base"></i>${webCharName} ${nationBadge}
+                                    </div>
+                                    <div class="text-sm font-bold text-yellow-500 whitespace-nowrap px-1 rounded">
+                                        <i class="fa-solid fa-coins mr-1 opacity-80 text-[13px]"></i>${webCoinStr}
+                                    </div>
+                                </div>
+                                
+                                <!-- Target & Premium ROW -->
+                                <div class="flex justify-between items-center text-sm font-bold text-slate-300">
+                                    <div class="flex items-center truncate max-w-[50%]" title="Hedef (Target)">
+                                        <i class="fa-solid fa-crosshairs text-red-400 w-5 text-center mr-1"></i>
+                                        <span class="truncate">${webTarget}</span>
+                                    </div>
+                                    <div class="flex items-center justify-end text-yellow-500" title="Premium Süresi">
+                                        <i class="fa-solid fa-crown w-5 text-center mr-1"></i>
+                                        <span class="truncate">${webPremium}</span>
+                                    </div>
+                                </div>
+
+                                <!-- Materials ROW -->
+                                <div class="flex flex-wrap gap-2 items-center mt-1">
+                                    <i class="fa-solid fa-box-open text-emerald-500 w-5 text-center mr-1" title="Materyaller"></i>
+                                    ${materialHTML}
+                                </div>
                             </div>
-                            
-                            <div class="flex justify-between items-center mb-3 bg-slate-900/30 p-2.5 rounded-lg text-[11px] text-slate-300 border border-slate-700/30">
-                                <div class="truncate pr-2 font-medium" title="Hedef (Target)"><i class="fa-solid fa-crosshairs text-red-400 mr-1"></i>${webTarget}</div>
-                                <div class="flex gap-1 items-center" title="Materyaller">${materialHTML}</div>
-                                <div class="whitespace-nowrap text-right pl-2 font-bold" title="Premium Süresi"><i class="fa-solid fa-crown text-yellow-500 mr-1"></i>${webPremium}</div>
+
+                            <!-- Etiketler/Gruplar -->
+                            <div class="flex flex-wrap gap-1 mt-3 min-h-[18px]">
+                                ${groupTagsHTML}
                             </div>
-                            
-                            <div class="flex flex-wrap gap-1 min-h-[20px] mb-3">${groupTagsHTML}</div>
-                            
-                            <div class="flex items-center gap-3 mt-auto bg-slate-900/40 p-2 rounded-lg border border-slate-700/50">
-                                <div class="w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0 shadow-sm" style="background-color: ${displayColor}20; color: ${displayColor}"><i class="fa-solid ${icon}"></i></div>
-                                <p class="text-[12px] font-bold leading-tight line-clamp-2" style="color: ${displayColor}" title="${displayStatus}">${displayStatus}</p>
+
+                            <!-- YENİ DÜZEN: Sadece Durum Çubuğu -->
+                            <div class="mt-auto pt-4">
+                                <div class="flex items-center gap-2.5 bg-slate-900/80 px-3 py-2.5 rounded-lg border border-slate-700/50 shadow-md w-full overflow-hidden">
+                                    <div class="relative flex h-3.5 w-3.5 shrink-0">
+                                      ${onlinePing}
+                                      <span class="relative inline-flex rounded-full h-3.5 w-3.5" style="background-color: ${displayColor}"></span>
+                                    </div>
+                                    <span class="text-sm font-black truncate tracking-wide flex-grow" style="color: ${displayColor}" title="${displayStatus}">${displayStatus}</span>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="bg-slate-900/80 px-4 py-2 text-[11px] text-slate-400 flex justify-between uppercase tracking-wider border-t border-slate-800">
-                            <span class="truncate pr-2 font-mono"><i class="fa-solid fa-microchip mr-1"></i> ${bot.MachineName || 'PC'}</span>
-                            <span class="shrink-0 font-bold"><i class="fa-regular fa-clock mr-1"></i> ${isDead && bot.LastUpdate ? Math.floor(diffMinutes) + ' DK' : (bot.LastUpdate ? bot.LastUpdate.split(' ')[1] : '--:--')}</span>
+                        <!-- YENİ DÜZEN: KARTIN EN ALTINDAKİ BİLGİ ŞERİDİ (PC ADI & SAAT) -->
+                        <div class="bg-slate-900/60 border-t border-slate-700/50 px-4 py-2.5 flex justify-between items-center text-[11px] text-slate-400 font-bold mt-auto shrink-0">
+                            <div class="flex items-center gap-2 truncate pr-2" title="Makine Adı">
+                                <i class="fa-solid fa-microchip opacity-70 text-xs"></i>
+                                <span class="truncate">${bot.MachineName || 'PC'}</span>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0" title="Son Güncelleme">
+                                <i class="fa-regular fa-clock opacity-70 text-xs"></i>
+                                <span>${isDead && bot.LastUpdate ? Math.floor(diffMinutes) + ' DK ÖNCE' : (bot.LastUpdate ? bot.LastUpdate.split(' ')[1] : '--:--')}</span>
+                            </div>
                         </div>
                     `;
                     gridDiv.appendChild(card);
@@ -1645,7 +1691,7 @@
                                 <div class="text-xs font-bold" style="color: ${displayColor}" title="${displayStatus}"><i class="fa-solid ${icon} mr-1"></i>${statusCode}</div>
                                 <div class="text-[10px] text-slate-500">${isDead && bot.LastUpdate ? Math.floor(diffMinutes) + ' Dk' : (bot.LastUpdate ? bot.LastUpdate.split(' ')[1] : '--:--')}</div>
                             </td>
-                            <td class="px-4 py-2 text-right font-extrabold text-yellow-400 text-sm whitespace-nowrap">${webCoinStr}</td>
+                            <td class="px-4 py-2 text-right font-bold text-yellow-500 text-sm whitespace-nowrap">${webCoinStr}</td>
                             <td class="px-4 py-2 text-center text-red-300 text-xs font-medium truncate max-w-[120px]" title="${webTarget}">${webTarget}</td>
                             <td class="px-4 py-2 text-center">
                                 <div class="flex justify-center items-center gap-1">${materialHTML}</div>
@@ -1687,7 +1733,6 @@
             document.getElementById('statError').innerText = errors;
         }
 
-        // --- 5. ADMİN MÜŞTERİ YÖNETİMİ ---
         async function openAdminModal() { document.getElementById('adminModal').classList.remove('hidden'); await loadAdminUsers(); }
         function closeAdminModal() { document.getElementById('adminModal').classList.add('hidden'); }
 
@@ -1756,7 +1801,6 @@
             } catch (e) { alert("Temizleme sırasında hata oluştu: " + e); }
         }
 
-        // --- 6. GEMINI AI FİLO ANALİZİ ---
         async function fetchWithRetry(url, options, maxRetries = 5) {
             const delays = [1000, 2000, 4000, 8000, 16000];
             for (let i = 0; i < maxRetries; i++) {
