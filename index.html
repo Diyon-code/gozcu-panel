@@ -723,7 +723,7 @@
             fetchBotData();
             refreshInterval = setInterval(fetchBotData, 5000);
             
-            // YENİ: Otomatik Veri Çekme (Panele ilk girildiğinde 3 kez arka arkaya tetikler)
+            // YENİ: Otomatik Veri Çekme (Panele ilk girildiğinde 1 kez tetikler)
             autoTriggerWebData();
         }
 
@@ -790,10 +790,8 @@
         }
 
         function autoTriggerWebData() {
-            console.log("Otomatik veri çekme başlatıldı (Arka arkaya 3 kere tetiklenecek)");
-            triggerDataBridge(); // 1. Çekim (0. Saniye)
-            setTimeout(() => triggerDataBridge(), 5000);  // 2. Çekim (5 Saniye sonra)
-            setTimeout(() => triggerDataBridge(), 10000); // 3. Çekim (10 Saniye sonra)
+            console.log("Otomatik veri çekme başlatıldı (1 kere tetiklenecek)");
+            triggerDataBridge(); // Sadece ilk girişte 1 kez çalışır.
         }
         // ======================================================================================
 
