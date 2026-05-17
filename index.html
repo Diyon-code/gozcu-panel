@@ -4,11 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KNIGHT GÖZCÜ - Canlı Kontrol Merkezi</title>
-    
+
     <!-- ÜST DÜZEY GÜVENLİK PROTOKOLÜ -->
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        
         const isLocalOrPreview = window.location.hostname.includes('usercontent.goog') || 
                                  window.location.hostname === 'localhost' || 
                                  window.location.hostname === '127.0.0.1' || 
@@ -173,7 +172,7 @@
             </button>
         </div>
 
-        <!-- 3 KATMANLI FILTRE VE KONTROL ALANI (UI/UX YENIDEN TASARLANDI) -->
+        <!-- 3 KATMANLI FILTRE VE KONTROL ALANI -->
         
         <!-- KATMAN 1: SEGMENTASYON (Grup Yönetimi ve Sekmeler) -->
         <div class="mb-3 flex gap-2 overflow-x-auto scrollbar-hide items-center bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/80" id="groupFilterPills">
@@ -250,6 +249,18 @@
                     <i class="fa-solid fa-broom text-xs"></i> Kopanları Sil
                 </button>
                 
+                <!-- YENİ EKLENEN BUTON (TÜMÜNÜ SİL) -->
+                <button id="clearAllBtn" onclick="clearAllBots()" class="bg-slate-850 hover:bg-red-900 border border-slate-800 hover:border-red-500 text-slate-400 hover:text-white px-4 py-2.5 rounded-lg font-bold text-xs transition-colors flex items-center gap-1.5 shadow" title="Ekranda listelenen tüm botları içindeki bilgilerle birlikte kalıcı olarak siler">
+                    <i class="fa-solid fa-dumpster text-xs"></i> Tümünü Sil
+                </button>
+                
+                <button onclick="syncFromWeb()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2.5 rounded-lg font-bold text-xs shadow-md transition-all flex items-center gap-1.5 border border-cyan-500/30" title="Verileri Web Üzerinden Çeker">
+                    <i class="fa-solid fa-cloud-arrow-down text-xs"></i> Web'den Çek
+                </button>
+                <button onclick="openBridgeModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-lg font-bold text-xs shadow-md transition-all flex items-center gap-1.5 border border-indigo-500/30" title="Veri Köprüsü Kurar">
+                    <i class="fa-solid fa-network-wired text-xs"></i> Veri Köprüsü
+                </button>
+
                 <button onclick="openMassGroupModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-lg font-bold text-xs shadow-md shadow-emerald-900/30 transition-all flex items-center gap-1.5 border border-emerald-500/30">
                     <i class="fa-solid fa-tags text-xs"></i> Toplu Grup
                 </button>
@@ -389,6 +400,84 @@
         </div>
     </div>
 
+    <!-- GERİ GETİRİLEN: VERİ KÖPRÜSÜ MODALI -->
+    <div id="bridgeModal" class="hidden fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4 backdrop-blur-md">
+        <div class="glass-panel rounded-2xl max-w-4xl w-full border border-indigo-500/50 shadow-2xl relative flex flex-col max-h-[90vh] overflow-hidden">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 border-b border-slate-800/80 flex justify-between items-center bg-slate-900">
+                <div>
+                    <h2 class="text-xl font-black flex items-center gap-2 text-white">
+                        <i class="fa-solid fa-database text-yellow-500"></i> Veri Köprüsü & Senkronizasyon
+                    </h2>
+                    <p class="text-slate-400 text-xs mt-1">Hedef site ile botlarınız arasındaki veri aktarımını yapılandırın.</p>
+                </div>
+                <button onclick="closeBridgeModal()" class="text-slate-500 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-2xl"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-6 grid grid-cols-1 md:grid-cols-12 gap-6 bg-slate-900/50 overflow-y-auto">
+                <!-- Sol Kolon -->
+                <div class="col-span-1 md:col-span-5 flex flex-col gap-6">
+                    <div class="bg-slate-950/60 border border-slate-800/80 p-5 rounded-xl">
+                        <h3 class="text-yellow-500 font-bold mb-4 flex items-center gap-2 text-xs tracking-wider uppercase"><i class="fa-solid fa-link"></i> Hedef Site Kimliği</h3>
+                        <div class="space-y-3">
+                            <input type="text" id="bridgeUrl" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-indigo-500 transition-colors" placeholder="https://knfbx.com/clients/view-all">
+                            <input type="email" id="bridgeEmail" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-indigo-500 transition-colors" placeholder="E-posta">
+                            <input type="password" id="bridgePass" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-indigo-500 transition-colors" placeholder="Şifre">
+                        </div>
+                    </div>
+                    
+                    <div class="bg-slate-950/60 border border-slate-800/80 p-5 rounded-xl flex-grow">
+                        <h3 class="text-yellow-500 font-bold mb-2 flex items-center gap-2 text-xs tracking-wider uppercase"><i class="fa-solid fa-square-check"></i> Çekilecek Veriler</h3>
+                        <div class="space-y-3 mt-4">
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" id="bridgeCheckCoin" class="custom-checkbox w-5 h-5 rounded appearance-none bg-slate-900 border border-slate-700 outline-none">
+                                <span class="text-slate-300 text-sm group-hover:text-white transition-colors"><i class="fa-solid fa-coins text-yellow-500 w-5"></i> Cüzdan / Coin</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" id="bridgeCheckPremium" class="custom-checkbox w-5 h-5 rounded appearance-none bg-slate-900 border border-slate-700 outline-none">
+                                <span class="text-slate-300 text-sm group-hover:text-white transition-colors"><i class="fa-solid fa-crown text-yellow-400 w-5"></i> Premium Süresi</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" id="bridgeCheckChar" class="custom-checkbox w-5 h-5 rounded appearance-none bg-slate-900 border border-slate-700 outline-none">
+                                <span class="text-slate-300 text-sm group-hover:text-white transition-colors"><i class="fa-solid fa-user text-slate-400 w-5"></i> Karakter Adı / Irk</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" id="bridgeCheckTarget" class="custom-checkbox w-5 h-5 rounded appearance-none bg-slate-900 border border-slate-700 outline-none">
+                                <span class="text-slate-300 text-sm group-hover:text-white transition-colors"><i class="fa-solid fa-crosshairs text-red-500 w-5"></i> Hedef (Target)</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" id="bridgeCheckMaterial" class="custom-checkbox w-5 h-5 rounded appearance-none bg-slate-900 border border-slate-700 outline-none">
+                                <span class="text-slate-300 text-sm group-hover:text-white transition-colors"><i class="fa-solid fa-box-open text-orange-400 w-5"></i> Materyaller</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sağ Kolon -->
+                <div class="col-span-1 md:col-span-7 bg-slate-950/60 border border-slate-800/80 p-5 rounded-xl flex flex-col h-[400px]">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-yellow-500 font-bold flex items-center gap-2 text-xs tracking-wider uppercase"><i class="fa-solid fa-users"></i> Senkronize Edilecek Botlar</h3>
+                        <button onclick="toggleAllBridgeBots()" class="bg-slate-800 hover:bg-slate-700 text-white text-[10px] px-3 py-1.5 rounded transition-colors font-bold uppercase tracking-wider">Tümünü Seç / Kaldır</button>
+                    </div>
+                    <div id="bridgeBotList" class="space-y-2 overflow-y-auto pr-2 custom-scrollbar flex-grow">
+                        <!-- JS ile Doldurulacak -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-6 bg-slate-900 border-t border-slate-800/80">
+                <button onclick="saveBridgeSettings()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black py-3.5 rounded-xl transition-all shadow-lg shadow-indigo-900/30 flex items-center justify-center gap-2 tracking-wide">
+                    <i class="fa-solid fa-database"></i> KÖPRÜ AYARLARINI KAYDET & UYGULA
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- / VERİ KÖPRÜSÜ MODALI -->
+
     <!-- ADMİN LİSANS VE CANLI DUYURU MODALI -->
     <div id="adminModal" class="hidden fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4 backdrop-blur-md">
         <div class="glass-panel p-6 rounded-2xl max-w-2xl w-full border border-purple-500 shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
@@ -489,6 +578,7 @@
 
         let currentViewMode = 'grid'; 
         let selectedBotKeys = new Set(); 
+        let bridgeSelectedBots = new Set(); // Veri Köprüsü için eklendi
 
         const colorMap = { "green": "#22c55e", "red": "#ef4444", "yellow": "#eab308", "orange": "#f97316", "purple": "#a855f7", "blue": "#3b82f6", "black": "#334155", "gray": "#6b7280" };
         const iconMap = { "ONLINE": "fa-play", "QUEUE": "fa-hourglass-half", "LAUNCHER": "fa-rocket", "OTP_ERROR": "fa-lock", "NPC_ERROR": "fa-triangle-exclamation", "JAIL": "fa-gavel", "BLACKLIST": "fa-skull-crossbones", "TIME_ERROR": "fa-clock", "RESTRICTED_WAIT": "fa-ban", "RESTRICTED_OPEN": "fa-eye-slash", "OFFLINE": "fa-plug-circle-xmark", "DELAY": "fa-stopwatch", "VIP_PASS": "fa-ticket", "RESTARTING": "fa-skull-crossbones", "PAUSE_BOT": "fa-pause" };
@@ -595,6 +685,12 @@
 
             fetchBotData();
             fetchCanliDuyuru();
+            
+            // SİTEYE GİRİLDİĞİNDE OTOMATİK VDS TETİKLEMESİ (PİNG)
+            try {
+                fetch(`${FIREBASE_URL}api/tetikle/${currentMusteriID}?key=${PANEL_API_KEY}`).catch(e => console.log("Otomatik ping hatası:", e));
+            } catch(e) {}
+
             refreshInterval = setInterval(() => {
                 fetchBotData();
                 fetchCanliDuyuru();
@@ -624,7 +720,15 @@
         async function fetchCanliDuyuru() {
             try {
                 const res = await apiFetch(`${FIREBASE_URL}Panel/Duyuru.json`);
-                const text = await res.json();
+                const data = await res.json();
+                
+                // Güvenli çözümleme: Eğer obje gelmişse içindeki "mesaj" kısmını al, yoksa direkt datayı al.
+                let text = "";
+                if (data && typeof data === 'object' && data.mesaj) {
+                    text = data.mesaj;
+                } else if (typeof data === 'string') {
+                    text = data;
+                }
                 
                 const loginBanner = document.getElementById('loginDuyuruBanner');
                 const loginText = document.getElementById('loginDuyuruText');
@@ -661,8 +765,10 @@
             try {
                 await apiFetch(`${FIREBASE_URL}Panel/Duyuru.json`, {
                     method: 'PUT',
-                    body: JSON.stringify(text)
+                    body: JSON.stringify({ mesaj: text }) // JSON Objesi olarak gönderiyoruz (Çözümlenmesi en garanti yol)
                 });
+                
+                localStorage.removeItem('gozcu_duyuru_closed_text'); // Admin kendi kapattığı duyuruyu tekrar görebilsin diye önbelleği sıfırlıyoruz.
                 alert("📢 Sistem duyurusu başarıyla yayınlandı!");
                 fetchCanliDuyuru();
             } catch (e) {
@@ -675,6 +781,7 @@
             try {
                 await apiFetch(`${FIREBASE_URL}Panel/Duyuru.json`, { method: 'DELETE' });
                 document.getElementById('adminDuyuruInput').value = "";
+                localStorage.removeItem('gozcu_duyuru_closed_text');
                 alert("🗑️ Duyuru başarıyla kaldırıldı!");
                 fetchCanliDuyuru();
             } catch (e) {
@@ -1565,6 +1672,181 @@
                 await apiFetch(`${FIREBASE_URL}.json`, { method: 'PATCH', body: JSON.stringify(updates) });
                 fetchBotData(); alert(`✅ ${offlineBots.length} adet bağlantısı kopmuş bot başarıyla temizlendi!`);
             } catch (e) { alert("Temizleme sırasında hata oluştu: " + e); }
+        }
+
+        // --- YENİ: TÜMÜNÜ SİL FONKSİYONU ---
+        async function clearAllBots() {
+            if(filteredBotsList.length === 0) { 
+                alert("Şu anda ekranda silinecek hiçbir bot bulunmuyor."); 
+                return; 
+            }
+            
+            if(!confirm(`DİKKAT: Şu an ekranda listelenen TOPLAM ${filteredBotsList.length} botun tüm kayıtları veritabanından KALICI olarak silinecek!\n\nİçindeki Coin, Premium, Materyal ve Hedef gibi tüm bilgiler de silinecektir.\n\nOnaylıyor musunuz?`)) return;
+            
+            const btn = document.getElementById('clearAllBtn');
+            if(btn) { btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Siliniyor...'; btn.disabled = true; }
+            
+            try {
+                let updates = {}; 
+                // Ekranda o an hangi botlar listeleniyorsa hepsini temizler.
+                filteredBotsList.forEach(bot => { 
+                    updates[`Bots/${bot.owner}/${bot.key}`] = null; 
+                });
+                
+                await apiFetch(`${FIREBASE_URL}.json`, { method: 'PATCH', body: JSON.stringify(updates) });
+                fetchBotData(); 
+                alert(`✅ ${filteredBotsList.length} adet bot tüm bilgileriyle birlikte başarıyla temizlendi!`);
+            } catch (e) { 
+                alert("Temizleme sırasında hata oluştu: " + e); 
+            } finally {
+                if(btn) { btn.innerHTML = '<i class="fa-solid fa-dumpster text-xs"></i> Tümünü Sil'; btn.disabled = false; }
+            }
+        }
+
+        // --- VERİ KÖPRÜSÜ VE WEB'DEN ÇEK FONKSİYONLARI ---
+        async function syncFromWeb() {
+            const btn = document.querySelector('button[onclick="syncFromWeb()"]');
+            if(btn) { btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Tetikleniyor...'; btn.disabled = true; }
+            try {
+                let targetId = currentMusteriID;
+                if (currentUserRole === "admin" && document.getElementById('adminViewFilter')) {
+                    const filterVal = document.getElementById('adminViewFilter').value;
+                    if (filterVal !== "ALL") targetId = filterVal;
+                }
+
+                // VDS Sunucusuna (Node.js) Tetikleme İsteği (Ping) Gönderiliyor
+                const response = await fetch(`${FIREBASE_URL}api/tetikle/${targetId}?key=${PANEL_API_KEY}`);
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        alert("✅ VDS Veri Köprüsü başarıyla tetiklendi!\nSistem arka planda verileri çekip tabloyu güncelleyecektir.");
+                        fetchBotData(); // Arayüzü tazelemeye zorla
+                    } else {
+                        alert("⚠️ VDS tetikleme başarısız: " + (result.message || "Bilinmeyen hata"));
+                    }
+                } else {
+                    alert("❌ Sunucu hatası! (HTTP " + response.status + ")");
+                }
+            } catch(e) {
+                alert("Bağlantı Hatası: Sunucuya ulaşılamıyor.\nDetay: " + e.message);
+            } finally {
+                if(btn) { btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-down text-xs"></i> Web\'den Çek'; btn.disabled = false; }
+            }
+        }
+
+        function openBridgeModal() {
+            document.getElementById('bridgeModal').classList.remove('hidden');
+            const listDiv = document.getElementById('bridgeBotList');
+            listDiv.innerHTML = '';
+            bridgeSelectedBots.clear();
+            
+            // --- EKLENEN KISIM: Tarayıcı hafızasındaki (LocalStorage) kayıtlı bilgileri geri yükle ---
+            try {
+                const savedSettings = localStorage.getItem('gozcu_bridge_settings');
+                if (savedSettings) {
+                    const parsed = JSON.parse(savedSettings);
+                    if (parsed.url) document.getElementById('bridgeUrl').value = parsed.url;
+                    if (parsed.email) document.getElementById('bridgeEmail').value = parsed.email;
+                    if (parsed.pass) document.getElementById('bridgePass').value = parsed.pass;
+                    
+                    document.getElementById('bridgeCheckCoin').checked = parsed.syncCoin;
+                    document.getElementById('bridgeCheckPremium').checked = parsed.syncPremium;
+                    document.getElementById('bridgeCheckChar').checked = parsed.syncChar;
+                    document.getElementById('bridgeCheckTarget').checked = parsed.syncTarget;
+                    document.getElementById('bridgeCheckMaterial').checked = parsed.syncMaterial;
+                }
+            } catch (e) { console.error("Kayıtlı köprü ayarları okunamadı:", e); }
+            // -----------------------------------------------------------------------------------------
+
+            if(filteredBotsList.length === 0) {
+                listDiv.innerHTML = '<p class="text-xs text-slate-500 italic p-2">Listede gösterilecek bot yok.</p>';
+                return;
+            }
+
+            filteredBotsList.forEach(bot => {
+                const bData = allBotsData[`${bot.owner}___${bot.key}`];
+                const charName = bData.WebCharName || "-";
+                const div = document.createElement('label');
+                div.className = "flex items-center space-x-3 p-2 hover:bg-slate-900 rounded-lg cursor-pointer transition border border-transparent hover:border-slate-800";
+                div.innerHTML = `
+                    <input type="checkbox" onchange="toggleBridgeBot('${bot.key}')" class="bridge-bot-cb custom-checkbox h-5 w-5 rounded appearance-none bg-slate-950 border border-slate-700 outline-none cursor-pointer">
+                    <div class="flex flex-col">
+                        <span class="text-slate-200 text-xs font-bold">${bot.account} <span class="text-[10px] text-slate-500 ml-1">(${bot.server})</span></span>
+                        <span class="text-indigo-400 text-[10px]">${charName}</span>
+                    </div>
+                `;
+                listDiv.appendChild(div);
+            });
+        }
+
+        function closeBridgeModal() { document.getElementById('bridgeModal').classList.add('hidden'); }
+
+        function toggleBridgeBot(botId) {
+            if(bridgeSelectedBots.has(botId)) bridgeSelectedBots.delete(botId);
+            else bridgeSelectedBots.add(botId);
+        }
+
+        function toggleAllBridgeBots() {
+            const checkboxes = document.querySelectorAll('.bridge-bot-cb');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            
+            checkboxes.forEach(cb => {
+                cb.checked = !allChecked;
+                const funcMatch = cb.getAttribute('onchange').match(/'([^']+)'/);
+                if(funcMatch) {
+                    if(!allChecked) bridgeSelectedBots.add(funcMatch[1]);
+                    else bridgeSelectedBots.delete(funcMatch[1]);
+                }
+            });
+        }
+
+        async function saveBridgeSettings() {
+            const url = document.getElementById('bridgeUrl').value.trim();
+            const email = document.getElementById('bridgeEmail').value.trim();
+            const pass = document.getElementById('bridgePass').value.trim();
+            
+            if(!url || !email || !pass) { alert("Lütfen URL, E-posta ve Şifre alanlarını doldurun!"); return; }
+            if(bridgeSelectedBots.size === 0) { alert("Senkronize edilecek en az bir bot seçmelisiniz!"); return; }
+
+            const config = {
+                url: url, email: email, pass: pass,
+                syncCoin: document.getElementById('bridgeCheckCoin').checked,
+                syncPremium: document.getElementById('bridgeCheckPremium').checked,
+                syncChar: document.getElementById('bridgeCheckChar').checked,
+                syncTarget: document.getElementById('bridgeCheckTarget').checked,
+                syncMaterial: document.getElementById('bridgeCheckMaterial').checked,
+                lastUpdate: new Date().toLocaleString('tr-TR')
+            };
+
+            // --- EKLENEN KISIM: Form verilerini bir sonraki açılış için tarayıcıya kalıcı kaydet ---
+            localStorage.setItem('gozcu_bridge_settings', JSON.stringify({
+                url: url, email: email, pass: pass,
+                syncCoin: config.syncCoin, syncPremium: config.syncPremium, 
+                syncChar: config.syncChar, syncTarget: config.syncTarget, syncMaterial: config.syncMaterial
+            }));
+            // ---------------------------------------------------------------------------------------
+
+            try {
+                // Sadece sisteme kaydetme yapıyoruz
+                await apiFetch(`${FIREBASE_URL}Panel/BridgeSettings.json`, { method: 'PUT', body: JSON.stringify(config) });
+                
+                let updates = {};
+                filteredBotsList.forEach(bot => {
+                    if(bridgeSelectedBots.has(bot.key)) {
+                        updates[`Bots/${bot.owner}/${bot.key}/Bridge`] = { enabled: true, ...config };
+                    } else {
+                        updates[`Bots/${bot.owner}/${bot.key}/Bridge`] = null; // Seçilmeyenleri temizle
+                    }
+                });
+
+                await apiFetch(`${FIREBASE_URL}.json`, { method: 'PATCH', body: JSON.stringify(updates) });
+                
+                alert("✅ Veri Köprüsü ayarları başarıyla kaydedildi ve seçili botlara uygulandı!");
+                closeBridgeModal();
+            } catch(e) {
+                alert("Hata oluştu: " + e);
+            }
         }
     </script>
 </body>
