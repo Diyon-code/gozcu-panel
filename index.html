@@ -1746,15 +1746,16 @@
                 const savedSettings = localStorage.getItem('gozcu_bridge_settings');
                 if (savedSettings) {
                     const parsed = JSON.parse(savedSettings);
-                    if (parsed.url) document.getElementById('bridgeUrl').value = parsed.url;
+                    if (parsed.targetUrl || parsed.url) document.getElementById('bridgeUrl').value = parsed.targetUrl || parsed.url;
                     if (parsed.email) document.getElementById('bridgeEmail').value = parsed.email;
-                    if (parsed.pass) document.getElementById('bridgePass').value = parsed.pass;
+                    if (parsed.password || parsed.pass) document.getElementById('bridgePass').value = parsed.password || parsed.pass;
                     
-                    document.getElementById('bridgeCheckCoin').checked = parsed.syncCoin;
-                    document.getElementById('bridgeCheckPremium').checked = parsed.syncPremium;
-                    document.getElementById('bridgeCheckChar').checked = parsed.syncChar;
-                    document.getElementById('bridgeCheckTarget').checked = parsed.syncTarget;
-                    document.getElementById('bridgeCheckMaterial').checked = parsed.syncMaterial;
+                    // ESKİ SİSTEME UYUMLULUK: fetchCoin, fetchPremium vb. kontrol edilir
+                    document.getElementById('bridgeCheckCoin').checked = parsed.fetchCoin !== undefined ? parsed.fetchCoin : parsed.syncCoin;
+                    document.getElementById('bridgeCheckPremium').checked = parsed.fetchPremium !== undefined ? parsed.fetchPremium : parsed.syncPremium;
+                    document.getElementById('bridgeCheckChar').checked = parsed.fetchCharName !== undefined ? parsed.fetchCharName : parsed.syncChar;
+                    document.getElementById('bridgeCheckTarget').checked = parsed.fetchTarget !== undefined ? parsed.fetchTarget : parsed.syncTarget;
+                    document.getElementById('bridgeCheckMaterial').checked = parsed.fetchMaterial !== undefined ? parsed.fetchMaterial : parsed.syncMaterial;
                 }
             } catch (e) { console.error("Kayıtlı köprü ayarları okunamadı:", e); }
             // -----------------------------------------------------------------------------------------
@@ -1809,40 +1810,45 @@
             if(!url || !email || !pass) { alert("Lütfen URL, E-posta ve Şifre alanlarını doldurun!"); return; }
             if(bridgeSelectedBots.size === 0) { alert("Senkronize edilecek en az bir bot seçmelisiniz!"); return; }
 
+            // 1. DÜZELTME: Seçili botlar eskisi gibi "activeBots" objesi içinde toplanıyor.
+            const activeBotsObj = {};
+            bridgeSelectedBots.forEach(botKey => {
+                activeBotsObj[botKey] = true;
+            });
+
+            // 2. DÜZELTME: Değişken adları eski JSON yapısıyla birebir aynı yapıldı (fetchCoin, fetchCharName vb.)
             const config = {
-                url: url, email: email, pass: pass,
-                syncCoin: document.getElementById('bridgeCheckCoin').checked,
-                syncPremium: document.getElementById('bridgeCheckPremium').checked,
-                syncChar: document.getElementById('bridgeCheckChar').checked,
-                syncTarget: document.getElementById('bridgeCheckTarget').checked,
-                syncMaterial: document.getElementById('bridgeCheckMaterial').checked,
+                targetUrl: url, email: email, password: pass,
+                fetchCoin: document.getElementById('bridgeCheckCoin').checked,
+                fetchPremium: document.getElementById('bridgeCheckPremium').checked,
+                fetchCharName: document.getElementById('bridgeCheckChar').checked,
+                fetchTarget: document.getElementById('bridgeCheckTarget').checked,
+                fetchMaterial: document.getElementById('bridgeCheckMaterial').checked,
+                activeBots: activeBotsObj,
                 lastUpdate: new Date().toLocaleString('tr-TR')
             };
 
             // --- EKLENEN KISIM: Form verilerini bir sonraki açılış için tarayıcıya kalıcı kaydet ---
             localStorage.setItem('gozcu_bridge_settings', JSON.stringify({
-                url: url, email: email, pass: pass,
-                syncCoin: config.syncCoin, syncPremium: config.syncPremium, 
-                syncChar: config.syncChar, syncTarget: config.syncTarget, syncMaterial: config.syncMaterial
+                targetUrl: config.targetUrl, email: config.email, password: config.password,
+                fetchCoin: config.fetchCoin, fetchPremium: config.fetchPremium, 
+                fetchCharName: config.fetchCharName, fetchTarget: config.fetchTarget, fetchMaterial: config.fetchMaterial
             }));
             // ---------------------------------------------------------------------------------------
 
             try {
-                // Sadece sisteme kaydetme yapıyoruz
-                await apiFetch(`${FIREBASE_URL}Panel/BridgeSettings.json`, { method: 'PUT', body: JSON.stringify(config) });
+                // Veriler ortak havuza değil, Müşterinin (Users.json altındaki) KENDİ Klasörüne kaydedilecek
+                let targetId = currentMusteriID;
+                if (typeof currentUserRole !== 'undefined' && currentUserRole === "admin" && document.getElementById('adminViewFilter')) {
+                    const filterVal = document.getElementById('adminViewFilter').value;
+                    if (filterVal !== "ALL") targetId = filterVal;
+                }
                 
-                let updates = {};
-                filteredBotsList.forEach(bot => {
-                    if(bridgeSelectedBots.has(bot.key)) {
-                        updates[`Bots/${bot.owner}/${bot.key}/Bridge`] = { enabled: true, ...config };
-                    } else {
-                        updates[`Bots/${bot.owner}/${bot.key}/Bridge`] = null; // Seçilmeyenleri temizle
-                    }
-                });
-
-                await apiFetch(`${FIREBASE_URL}.json`, { method: 'PATCH', body: JSON.stringify(updates) });
+                await apiFetch(`${FIREBASE_URL}Users/${targetId}/BridgeConfig.json`, { method: 'PUT', body: JSON.stringify(config) });
                 
-                alert("✅ Veri Köprüsü ayarları başarıyla kaydedildi ve seçili botlara uygulandı!");
+                // 3. DÜZELTME: Botların (Bots.json) içine ayrı ayrı "Bridge" ekleme ve kirletme mantığı tamamen kaldırıldı.
+                
+                alert("✅ Veri Köprüsü ayarları başarıyla kaydedildi!");
                 closeBridgeModal();
             } catch(e) {
                 alert("Hata oluştu: " + e);
